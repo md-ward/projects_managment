@@ -1,0 +1,177 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId                        Int              @id @default(autoincrement())
+  email                         String           @unique
+  password                      String
+  username                      String           @unique
+  profilePictureUrl             String?
+  role                          UserRole         @default(USER)
+  teamId                        Int?
+  createdAt                     DateTime         @default(now())
+  updatedAt                     DateTime         @updatedAt
+  deletionToken                 String?
+  deletionTokenExpires          DateTime?
+  emailVerificationToken        String?
+  emailVerificationTokenExpires DateTime?
+  isEmailVerified               Boolean          @default(false)
+  fullname                      String
+  attachments                   Attachment[]
+  comments                      Comment[]
+  projects                      Project[]
+  assignedTasks                 Task[]           @relation("TaskAssignee")
+  authoredTasks                 Task[]           @relation("TaskAuthor")
+  taskAssignments               TaskAssignment[]
+  teamMemberships               TeamMember[]
+
+  @@index([email, username])
+}
+
+model Team {
+  id                   Int           @id @default(autoincrement())
+  teamName             String
+  productOwnerUserId   Int?
+  projectManagerUserId Int?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  description          String?
+  projectTeams         ProjectTeam[]
+  teamMembers          TeamMember[]
+
+  @@index([productOwnerUserId, projectManagerUserId])
+}
+
+model TeamMember {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+}
+
+model Project {
+  id               Int           @id @default(autoincrement())
+  name             String
+  description      String?
+  startDate        DateTime?
+  endDate          DateTime?
+  projectManagerId Int
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  projectManager   User          @relation(fields: [projectManagerId], references: [userId])
+  projectTeams     ProjectTeam[]
+  tasks            Task[]
+
+  @@index([projectManagerId])
+}
+
+model ProjectTeam {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  projectId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id])
+  team      Team     @relation(fields: [teamId], references: [id])
+
+  @@unique([teamId, projectId])
+}
+
+model Task {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String?
+  status          TaskStatus       @default(ToDo)
+  priority        TaskPriority
+  tags            TaskTag[]
+  startDate       DateTime?
+  dueDate         DateTime?
+  points          Int?
+  projectId       Int
+  authorUserId    Int
+  assignedUserId  Int?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  attachments     Attachment[]
+  comments        Comment[]
+  assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId])
+  author          User             @relation("TaskAuthor", fields: [authorUserId], references: [userId])
+  project         Project          @relation(fields: [projectId], references: [id])
+  taskAssignments TaskAssignment[]
+
+  @@index([projectId, authorUserId, assignedUserId])
+}
+
+model TaskAssignment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  taskId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id])
+  user      User     @relation(fields: [userId], references: [userId])
+
+  @@unique([userId, taskId])
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement())
+  fileURL      String
+  fileName     String?
+  taskId       Int
+  uploadedById Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  task         Task     @relation(fields: [taskId], references: [id])
+  uploadedBy   User     @relation(fields: [uploadedById], references: [userId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  taskId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id])
+  user      User     @relation(fields: [userId], references: [userId])
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum TaskStatus {
+  ToDo
+  WorkInProgress
+  UnderReview
+  Completed
+}
+
+enum TaskPriority {
+  Urgent
+  High
+  Medium
+  Low
+  Backlog
+}
+
+enum TaskTag {
+  FEATURE
+  BUG
+  IMPROVEMENT
+  DOCUMENTATION
+}
