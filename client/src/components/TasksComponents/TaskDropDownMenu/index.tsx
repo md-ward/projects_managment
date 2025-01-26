@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, MoreVerticalIcon } from "lucide-react";
 import useTaskStore from "@/state/task.state";
 
 const DropdownMenu = ({ taskId }: { taskId: number }) => {
@@ -30,9 +30,9 @@ const DropdownMenu = ({ taskId }: { taskId: number }) => {
     <div>
       <button
         onClick={handleClick}
-        className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
+        className="flex flex-shrink-0 items-center justify-center dark:text-neutral-500"
       >
-        <EllipsisVertical size={26} />
+<MoreVerticalIcon />
       </button>
 
       <Menu

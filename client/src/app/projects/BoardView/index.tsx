@@ -1,30 +1,28 @@
-// import { useGetTasksQuery, useUpdateTaskStatusMutation } from "@/state/api";
-import React, { useEffect } from "react";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Status, Task as TaskType } from "@/state/api";
-import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
-import { format } from "date-fns";
-import Image from "next/image";
+import { EllipsisVertical, Plus } from "lucide-react";
 import useTaskStore from "@/state/task.state";
-import { statusColor, statusMapping } from "@/lib/utils";
-import TaskDropDownMenu from "@/components/TasksComponents/TaskDropDownMenu";
-import DropdownMenu from "@/components/TasksComponents/TaskDropDownMenu";
+import { reverseStatusMapping, statusColor, statusMapping } from "@/lib/utils";
+import { useShallow } from "zustand/shallow";
+import BoardViewTaskCard from "@/components/TasksComponents/BoardViewTaskCard";
 
 const BoardView = () => {
-  const { tasks, updateTaskStatus, isLoading, isError } = useTaskStore();
+  const { tasks, updateTaskStatus } = useTaskStore(
+    useShallow((state) => ({
+      tasks: state.tasks,
+      updateTaskStatus: state.updateTaskStatus,
+    })),
+  );
 
   const moveTask = (taskId: number, toStatus: Status) => {
-    updateTaskStatus(taskId, toStatus);
+    updateTaskStatus(taskId, reverseStatusMapping[toStatus]);
   };
-
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>An error occurred while fetching tasks</div>;
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
-        {Object.entries(statusMapping).map(([key, value]) => (
+        {Object.entries(statusMapping).map(([, value]) => (
           <TaskColumn
             key={value}
             status={value as Status}
@@ -96,138 +94,8 @@ const TaskColumn = ({ status, tasks, moveTask }: TaskColumnProps) => {
       {tasks
         .filter((task) => task.status && statusMapping[task.status] === status)
         .map((task) => (
-          <Task key={task.id} task={task} />
+          <BoardViewTaskCard key={task.id} task={task} />
         ))}
-    </div>
-  );
-};
-
-const Task = ({ task }: { task: TaskType }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "task",
-    item: { id: task.id },
-    collect: (monitor: any) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }));
-
-  const formattedStartDate = task.startDate
-    ? format(new Date(task.startDate), "P")
-    : "";
-  const formattedDueDate = task.dueDate
-    ? format(new Date(task.dueDate), "P")
-    : "";
-
-  const numberOfComments = (task.comments && task.comments.length) || 0;
-
-  const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
-    <div
-      className={`rounded-full px-2 py-1 text-xs font-semibold ${
-        priority === "Urgent"
-          ? "bg-red-200 text-red-700"
-          : priority === "High"
-            ? "bg-yellow-200 text-yellow-700"
-            : priority === "Medium"
-              ? "bg-green-200 text-green-700"
-              : priority === "Low"
-                ? "bg-blue-200 text-blue-700"
-                : "bg-gray-200 text-gray-700"
-      }`}
-    >
-      {priority}
-    </div>
-  );
-
-  return (
-    <div
-      ref={(instance) => {
-        drag(instance);
-      }}
-      className={`mb-4 rounded-md bg-white shadow dark:bg-dark-secondary ${
-        isDragging ? "opacity-50" : "opacity-100"
-      }`}
-    >
-      {task.attachments && task.attachments.length > 0 && (
-        <Image
-          src={"/" + (task.attachments[0]?.fileURL ?? "")}
-          alt={task.attachments[0]?.fileName ?? ""}
-          width={400}
-          height={200}
-          className="h-auto w-full rounded-t-md"
-        />
-      )}
-      <div className="p-4 md:p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            {task.priority && <PriorityTag priority={task.priority} />}
-            <div className="flex gap-2">
-              {task.tags &&
-                task.tags.map((tag) => (
-                  <div
-                    key={tag}
-                    className="rounded-full bg-blue-100 px-2 py-1 text-xs"
-                  >
-                    {" "}
-                    {tag}
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          <DropdownMenu taskId={task.id} />
-        </div>
-
-        <div className="my-3 flex justify-between">
-          <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
-          {typeof task.points === "number" && (
-            <div className="text-xs font-semibold dark:text-white">
-              {task.points} pts
-            </div>
-          )}
-        </div>
-
-        <div className="text-xs text-gray-500 dark:text-neutral-500">
-          {formattedStartDate && <span>{formattedStartDate} - </span>}
-          {formattedDueDate && <span>{formattedDueDate}</span>}
-        </div>
-        <p className="text-sm text-gray-600 dark:text-neutral-500">
-          {task.description}
-        </p>
-        <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" />
-
-        {/* Users */}
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex -space-x-[6px] overflow-hidden">
-            {task?.assignee && task.assignee.profilePictureUrl && (
-              <Image
-                key={task.assignee.userId}
-                src={"/" + task.assignee.profilePictureUrl}
-                alt={task.assignee.username || "Assignee"}
-                width={30}
-                height={30}
-                className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
-              />
-            )}
-            {task?.author && task.author.profilePictureUrl && (
-              <Image
-                key={task.author.userId}
-                src={"/" + task.author.profilePictureUrl}
-                alt={task.author.username || "Author"}
-                width={30}
-                height={30}
-                className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
-              />
-            )}
-          </div>
-
-          <div className="flex items-center text-gray-500 dark:text-neutral-500">
-            <MessageSquareMore size={20} />
-            <span className="ml-1 text-sm dark:text-neutral-400">
-              {numberOfComments}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

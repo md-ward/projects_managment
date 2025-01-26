@@ -100,9 +100,9 @@ const Navbar = () => {
           className="hidden items-center justify-between md:flex"
         >
           <div className="align-center flex h-9 w-9 justify-center">
-            {!!user?.profilePictureUrl ? (
+            {user?.profilePictureUrl ? (
               <Image
-                src={"/" + user?.profilePictureUrl}
+                src={user?.profilePictureUrl}
                 alt={user?.username || "User Profile Picture"}
                 width={100}
                 height={50}

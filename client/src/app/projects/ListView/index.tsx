@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import EmptyTasks from "@/components/TasksComponents/EmptyTasks";
-import TaskCard from "@/components/TasksComponents/TaskCard";
+import TaskCard from "@/components/TasksComponents/ListViewTaskCard";
 import { Task } from "@/state/api";
 import useTaskStore from "@/state/task.state";
 import React from "react";

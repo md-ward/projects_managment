@@ -1,5 +1,3 @@
-import exp from "constants";
-
 export const dataGridClassNames =
   "border border-gray-200 bg-white shadow dark:border-stroke-dark dark:bg-dark-secondary dark:text-gray-200";
 
@@ -40,9 +38,9 @@ export const statusColor: any = {
   Completed: "#000000",
 };
 export const listStatusColor: any = {
-  "ToDo": "#2563EB",
-  "WorkInProgress": "#059669",
-  "UnderReview": "#D97706",
+  ToDo: "#2563EB",
+  WorkInProgress: "#059669",
+  UnderReview: "#D97706",
   Completed: "#000000",
 };
 
@@ -53,3 +51,9 @@ export const statusMapping: Record<string, string> = {
   Completed: "Completed",
 };
 
+export const reverseStatusMapping: Record<string, string> = {
+  "To Do": "ToDo",
+  "Work In Progress": "WorkInProgress",
+  "Under Review": "UnderReview",
+  Completed: "Completed",
+};

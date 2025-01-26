@@ -32,19 +32,23 @@ const columns: GridColDef[] = [
         <div className="h-9 w-9">
           {params.row.profilePictureUrl ? (
             <Image
-              src={("/" + params.row.profilePictureUrl) as string}
+              src={
+                params.row.profilePictureUrl.startsWith("http")
+                  ? params.row.profilePictureUrl
+                  : "/p1.jpeg"
+              }
               alt={params.row.username}
               title={params.row.username}
               width={100}
-              height={50}
-              className="h-full rounded-full object-cover"
+              height={100}
+              className="h-full w-full rounded-full object-cover"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
               <span className="flex size-9 justify-center rounded-full bg-orange-500 text-center">
                 <p className="text-2xl text-white">
                   {params.row.username?.charAt(0).toUpperCase()}
-                </p>{" "}
+                </p>
               </span>
             </div>
           )}

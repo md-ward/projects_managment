@@ -18,6 +18,8 @@ const useUserStore = create<UserStore>((set) => ({
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/users`,
       );
       set({ data: response.data, isLoading: false });
+      console.log(response.data);
+      
     } catch (error: any) {
       set({
         isError: error.message || "Could not fetch users",

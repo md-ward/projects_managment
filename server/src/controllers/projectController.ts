@@ -11,17 +11,19 @@ export const getProject = async (
   const projectId = Number(req.params.projectId);
   const userId = req.user?.userId;
   try {
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, projectManagerId: userId },
       include: {
         tasks: true,
       },
     });
+
     if (project) {
       res.json(project);
     } else {
       res.status(404).json({ message: "Project not found" });
     }
+    ``;
   } catch (error: any) {
     res
       .status(500)

@@ -26,7 +26,10 @@ app.use(
     origin: "http://localhost:3000",
   })
 );
-app.set("view engine", "ejs");
+app.use(
+  "/public/images",
+  express.static(path.join(__dirname, "public", "images"))
+);app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 /* ROUTES */
 app.get("/", (req, res) => {
@@ -38,7 +41,7 @@ app.use("/search", searchRoutes);
 app.use("/users", userRoutes);
 app.use("/teams", teamRoutes);
 
-const port = Number(process.env.PORT) || 3000;
-app.listen(port, "0.0.0.0", () => {
+const port = Number(process.env.PORT) || 8000;
+app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

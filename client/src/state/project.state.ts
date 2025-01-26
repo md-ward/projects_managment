@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Project, Team } from "./api";
 import axios from "axios";
 import useTaskStore from "./task.state";
+import useAlertStore from "./alert.state";
 
 interface ProjectStore {
   projectDetails: Partial<Project> | null;
@@ -54,8 +55,27 @@ const useProjectStore = create<ProjectStore>((set) => ({
         isLoading: false,
       });
     } catch (error) {
-      console.error("Error fetching project:", error);
-      set({ error: (error as Error).message, isLoading: false });
+      set({ isLoading: false });
+
+      if (axios.isAxiosError(error) && error.response) {
+        useAlertStore.getState().showAlert({
+          alertType: "error",
+          message: error.response.data.message,
+        });
+        useAlertStore.getState().showAlert({
+          alertType: "error",
+          message: "You will be redirected to the home page",
+          doRedirect: {
+            URL: "/",
+            doRedirect: true,
+          },
+        });
+      } else {
+        useAlertStore.getState().showAlert({
+          message: "An unexpected error occurred",
+          alertType: "error",
+        });
+      }
     }
   },
   createProject: async () => {

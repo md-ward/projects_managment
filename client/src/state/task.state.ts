@@ -3,7 +3,7 @@ import { Status, Task } from "./api";
 import axios from "axios";
 import useAlertStore from "./alert.state";
 interface TaskStore {
-  deleteTask: () => void;
+  deleteTask: (id: number) => void;
   isDeleteTaskModalOpen: boolean;
   deleteTaskId: number | null;
   toggleDeleteTaskModal: (taskId: number | null) => void;
@@ -17,7 +17,7 @@ interface TaskStore {
   getTasks: (projectId: number) => void;
   isLoading: boolean;
   isError: string | null;
-  updateTaskStatus: (taskId: number, status: Status) => void;
+  updateTaskStatus: (taskId: number, status: string) => void;
 }
 
 const useTaskStore = create<TaskStore>((set) => ({
@@ -46,9 +46,10 @@ const useTaskStore = create<TaskStore>((set) => ({
         tasks: [...useTaskStore.getState().tasks, response.data.task],
         isLoading: false,
       });
-      useAlertStore
-        .getState()
-        .showAlert("Task created successfully", "success");
+      useAlertStore.getState().showAlert({
+        message: "Task created successfully",
+        alertType: "success",
+      });
     } catch (error) {
       console.error("Error creating task:", error);
     } finally {
@@ -67,7 +68,6 @@ const useTaskStore = create<TaskStore>((set) => ({
           withCredentials: true,
         },
       );
-      console.log("Tasks:", response.data);
 
       set({ tasks: response.data, isLoading: false });
     } catch (error) {
@@ -77,26 +77,42 @@ const useTaskStore = create<TaskStore>((set) => ({
   },
   isLoading: false,
   isError: null,
-  updateTaskStatus(taskId: number, status: Status) {
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === taskId ? { ...task, status } : task,
-      ),
-    }));
-  },
-  deleteTask: async () => {
+  updateTaskStatus(taskId, status) {
     try {
-      // set({ isLoading: true, isError: null });
-      const id = useTaskStore.getState().deleteTaskId;
+      axios.patch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/status`,
+        { status },
+        {
+          withCredentials: true,
+        },
+      );
+      set((state) => ({
+        tasks: state.tasks.map((task) =>
+          task.id === taskId ? { ...task, status } : task,
+        ),
+      }));
+    } catch (error) {
+      useAlertStore
+        .getState()
+        .showAlert({ message: "Error updating task", alertType: "error" });
+    }
+  },
+  deleteTask: async (id) => {
+    try {
       await axios.delete(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${id}`,
         {
           withCredentials: true,
         },
       );
+
       set({
         tasks: useTaskStore.getState().tasks.filter((task) => task.id !== id),
-        // isLoading: false,
+      });
+
+      useAlertStore.getState().showAlert({
+        message: "Task deleted successfully",
+        alertType: "success",
       });
     } catch (error) {
       console.error("Error deleting task:", error);

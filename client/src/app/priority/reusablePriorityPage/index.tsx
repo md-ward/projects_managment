@@ -2,7 +2,7 @@
 
 import Header from "@/components/Header";
 import ModalNewTask from "@/components/TasksComponents/ModalNewTask";
-import TaskCard from "@/components/TasksComponents/TaskCard";
+import TaskCard from "@/components/TasksComponents/ListViewTaskCard";
 import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
 import { Priority, Task } from "@/state/api";
 import useModeStore from "@/state/mode.state";

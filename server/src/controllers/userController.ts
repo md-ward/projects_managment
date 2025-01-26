@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { log } from "console";
 import { generateToken } from "../util/generateRegToken";
 import { generateConfirmationToken } from "../util/generateDeletionToken";
-import sendEmail from "../util/sendEmails";
-import { confirmationEmailTemplate } from "../views/emailTemplate";
 import AuthenticatedRequest from "../types/authReqInterface";
 
 const prisma = new PrismaClient();
 
-export const getUsers = async (req: Request, res: Response): Promise<void> => {
+export const getUsers = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const users = await prisma.user.findMany({
       // where: {
@@ -56,6 +56,7 @@ export const getUser = async (
           teamId: true,
           teamMemberships: true,
           assignedTasks: true,
+          profilePictureUrl: true,
         },
       });
     } else {
@@ -74,6 +75,7 @@ export const getUser = async (
           teamId: true,
           teamMemberships: true,
           assignedTasks: true,
+          profilePictureUrl: true,
         },
       });
     }
@@ -84,7 +86,6 @@ export const getUser = async (
 
     res.status(200).json(t_user);
   } catch (error: any) {
-    log(error.meta?.target);
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2025"
@@ -321,5 +322,45 @@ export const deleteUser = async (
     res.json({ message: "User deleted successfully", deletedUser });
   } catch (error: any) {
     res.status(500).json({ message: `Error deleting user: ${error.message}` });
+  }
+};
+export const updateUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    // Dynamically construct the `data` object to include only non-null and non-undefined fields
+    const data: any = {};
+    if (req.body.fullName) data.fullname = req.body.fullName;
+    if (req.body.username) data.username = req.body.username;
+    if (req.body.email) data.email = req.body.email;
+
+    // Generate profilePictureUrl only if `req.body.image` exists
+    if (req.body.image) {
+      const protocol = req.protocol; // Detects if it's http or https
+      const host = req.get("host"); // Gets the hostname with the port if present
+      data.profilePictureUrl = new URL(
+        `${protocol}://${host}/public/images/${req.body.image}`
+      ).href;
+    }
+
+    // Update the user record in the database
+    const updatedUser = await prisma.user.update({
+      where: { userId: Number(req.user?.userId) },
+      data,
+      select: {
+        userId: true,
+        username: true,
+        fullname: true,
+        email: true,
+        profilePictureUrl: true,
+      },
+    });
+
+    console.log("User updated successfully", updatedUser);
+    res.json({ message: "User updated successfully", updatedUser });
+  } catch (error: any) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: `Error updating user: ${error.message}` });
   }
 };

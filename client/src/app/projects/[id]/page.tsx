@@ -10,14 +10,15 @@ import useTaskStore from "@/state/task.state";
 import ProjectHeader from "@/components/ProjectComponents/ProjectHeader";
 import ModalNewTask from "@/components/TasksComponents/ModalNewTask";
 import DeleteTaskModal from "@/components/TasksComponents/DeleteTaskModal";
+import { useShallow } from "zustand/shallow";
 
 type Props = {
   params: { id: string };
 };
 
 const Project = ({ params }: Props) => {
-  const getProject = useProjectStore((state) => state.getProject);
-  const getTasks = useTaskStore((state) => state.getTasks);
+  const getProject = useProjectStore(useShallow((state) => state.getProject));
+  const getTasks = useTaskStore(useShallow((state) => state.getTasks));
   const { id } = params;
   useEffect(() => {
     getProject(Number(id));
@@ -29,12 +30,11 @@ const Project = ({ params }: Props) => {
     <div>
       <ModalNewTask />
       <ProjectHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-    <DeleteTaskModal />
-      {activeTab === "Board" && <Board  />}
-      {activeTab === "List" && <List   />}
-      {activeTab === "Timeline" && <Timeline  />}
-      {activeTab === "Table" && <Table  />}
-
+      <DeleteTaskModal />
+      {activeTab === "Board" && <Board />}
+      {activeTab === "List" && <List />}
+      {activeTab === "Timeline" && <Timeline />}
+      {activeTab === "Table" && <Table />}
     </div>
   );
 };

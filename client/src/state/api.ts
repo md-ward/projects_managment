@@ -52,7 +52,7 @@ export interface Task {
   id: number;
   title: string;
   description?: string;
-  status?: Status;
+  status?: Status |string;
   priority?: Priority;
   tags?: TaskTags[];
   startDate?: string;

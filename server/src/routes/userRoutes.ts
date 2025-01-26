@@ -5,14 +5,17 @@ import {
   getUsers,
   loginUser,
   newUser,
+  updateUser,
   verifyEmail,
 } from "../controllers/userController";
 import checkAuth from "../middleware/authMiddleware";
+import imageUploadMiddleware from "../middleware/imagesController";
 
 const router = Router();
 router.post("/login", loginUser);
 // router.search("/search", checkAuth, getUser);
 router.get("/user", checkAuth, getUser);
+router.put("/user", checkAuth,imageUploadMiddleware, updateUser);
 router.get("/verify-email", verifyEmail);
 
 router.get("/", getUsers);
