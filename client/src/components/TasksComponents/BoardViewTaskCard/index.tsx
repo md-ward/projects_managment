@@ -6,14 +6,25 @@ import Image from "next/image";
 import DropdownMenu from "@/components/TasksComponents/TaskDropDownMenu";
 import { Card, CardHeader } from "@mui/material";
 import { motion } from "motion/react";
+import useDeletionDropzone from "@/state/deletionDropzone";
 
 const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
+  const setDropzoneOpen = useDeletionDropzone((state) => state.setDropzoneOpen);
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
     item: { id: task.id },
-    collect: (monitor: any) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
+    isDragging(monitor) {
+      setDropzoneOpen(true);
+      return true;
+    },
+    end: () => {
+      setDropzoneOpen(false);
+    },
+    collect: (monitor: any) => {
+      const isDragging = !!monitor.isDragging();
+      return { isDragging };
+    },
   }));
 
   const formattedStartDate = task.startDate
@@ -81,8 +92,6 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
           />
         )}
         <div className="p-4 md:p-6">
-          {/* Description */}
-
           <p className="text-sm text-gray-600 dark:text-neutral-500">
             {task.description}
           </p>
@@ -94,7 +103,6 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
                     key={tag}
                     className="rounded-full bg-blue-100 px-2 py-1 text-xs"
                   >
-                    {" "}
                     {tag}
                   </div>
                 ))}
@@ -103,7 +111,6 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
 
           <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" />
 
-          {/* Users */}
           <div className="mt-3 flex items-center justify-between">
             <div className="flex gap-2 bg-red-200 p-2">
               {task?.author && task.author.profilePictureUrl && (

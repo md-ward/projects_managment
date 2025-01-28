@@ -13,17 +13,8 @@ const DeleteTaskModal = () => {
       })),
     );
 
-function handleDelete() {
-  deleteTask();
-  toggleDeleteTaskModal(null);
-}
-
   return (
-    <Modal
-      open={isDeleteTaskModalOpen}
-      onClose={() => toggleDeleteTaskModal(null)}
-      aria-labelledby="delete-task-title"
-    >
+    <Modal open={isDeleteTaskModalOpen} aria-labelledby="delete-task-title">
       <Box
         sx={{
           position: "absolute",
@@ -59,7 +50,7 @@ function handleDelete() {
           >
             Cancel
           </Button>
-          <Button onClick={handleDelete} variant="contained" color="error">
+          <Button onClick={deleteTask} variant="contained" color="error">
             Delete
           </Button>
         </Box>

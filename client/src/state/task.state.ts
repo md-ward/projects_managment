@@ -3,7 +3,7 @@ import { Status, Task } from "./api";
 import axios from "axios";
 import useAlertStore from "./alert.state";
 interface TaskStore {
-  deleteTask: (id: number) => void;
+  deleteTask: () => void;
   isDeleteTaskModalOpen: boolean;
   deleteTaskId: number | null;
   toggleDeleteTaskModal: (taskId: number | null) => void;
@@ -20,7 +20,7 @@ interface TaskStore {
   updateTaskStatus: (taskId: number, status: string) => void;
 }
 
-const useTaskStore = create<TaskStore>((set) => ({
+const useTaskStore = create<TaskStore>((set, get) => ({
   task: null,
   setTask: (taskData) => {
     set((state) => ({ task: { ...state.task, ...taskData } as Task }));
@@ -97,17 +97,18 @@ const useTaskStore = create<TaskStore>((set) => ({
         .showAlert({ message: "Error updating task", alertType: "error" });
     }
   },
-  deleteTask: async (id) => {
+  deleteTask: async () => {
     try {
       await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${get().deleteTaskId}`,
         {
           withCredentials: true,
         },
       );
 
       set({
-        tasks: useTaskStore.getState().tasks.filter((task) => task.id !== id),
+        tasks: get().tasks.filter((task) => task.id !== get().deleteTaskId),
+        deleteTaskId: null,
       });
 
       useAlertStore.getState().showAlert({
@@ -117,6 +118,8 @@ const useTaskStore = create<TaskStore>((set) => ({
     } catch (error) {
       console.error("Error deleting task:", error);
       set({ isError: (error as any).message, isLoading: false });
+    } finally {
+      useTaskStore.getState().toggleDeleteTaskModal(null);
     }
   },
   deleteTaskId: null,

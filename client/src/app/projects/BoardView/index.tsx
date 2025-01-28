@@ -1,11 +1,13 @@
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Status, Task as TaskType } from "@/state/api";
-import { EllipsisVertical, Plus } from "lucide-react";
+import { Delete, EllipsisVertical, Plus, Trash } from "lucide-react";
 import useTaskStore from "@/state/task.state";
 import { reverseStatusMapping, statusColor, statusMapping } from "@/lib/utils";
 import { useShallow } from "zustand/shallow";
 import BoardViewTaskCard from "@/components/TasksComponents/BoardViewTaskCard";
+import { motion, AnimatePresence } from "motion/react";
+import useDeletionDropzone from "@/state/deletionDropzone";
 
 const BoardView = () => {
   const { tasks, updateTaskStatus } = useTaskStore(
@@ -21,6 +23,7 @@ const BoardView = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
+      <DeletionDropZone />
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
         {Object.entries(statusMapping).map(([, value]) => (
           <TaskColumn
@@ -32,6 +35,42 @@ const BoardView = () => {
         ))}
       </div>
     </DndProvider>
+  );
+};
+const DeletionDropZone = () => {
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: "task",
+    drop: (item: { id: number }) => {
+      useTaskStore.getState().toggleDeleteTaskModal(item.id);
+    },
+    collect: (monitor: any) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  }));
+
+  const isDropzoneOpen = useDeletionDropzone((state) => state.isDropzoneOpen);
+  return (
+    <div
+      className="mx-auto  p-2 flex w-fit place-content-center"
+      ref={(instance) => {
+        drop(instance);
+      }}
+    >
+      <AnimatePresence>
+        {isDropzoneOpen && (
+          <motion.div
+            className={`flex w-fit items-center justify-center overflow-hidden ${isOver ? "bg-red-500" : "bg-red-200"} rounded-full p-4`}
+            key="deleteDropzone"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }} 
+          >
+            <Trash size={24} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
@@ -60,7 +99,7 @@ const TaskColumn = ({ status, tasks, moveTask }: TaskColumnProps) => {
       ref={(instance) => {
         drop(instance);
       }}
-      className={`sl:py-4 rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
+      className={`sl:py-4 relative rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
     >
       <div className="mb-3 flex w-full">
         <div

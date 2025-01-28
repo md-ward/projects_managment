@@ -30,7 +30,12 @@ const useProjectStore = create<ProjectStore>((set) => ({
     set((state) => ({
       projectDetails: { ...state.projectDetails, ...formFieldData },
     })),
-  clearProjectDetails: () => set({ projectDetails: null }),
+  clearProjectDetails: () =>
+    set({
+      projectDetails: null,
+      currentProjectTeams: null,
+      currentProject: null,
+    }),
   // ! 2. handle the modal state
   isModalOpen: false,
   toggleModal: () => set((state) => ({ isModalOpen: !state.isModalOpen })),

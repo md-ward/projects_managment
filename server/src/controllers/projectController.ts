@@ -39,7 +39,7 @@ export const getProjects = async (
     const userId = req.user?.userId;
 
     const projects = await prisma.project.findMany({
-      where: {
+      where: { 
         projectManagerId: userId,
       },
       select: {

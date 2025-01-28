@@ -7,6 +7,8 @@ import useModeStore from "@/state/mode.state";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/state/auth";
 import { useEffect } from "react";
+import useProjectStore from "@/state/project.state";
+import { useShallow } from "zustand/shallow";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,12 +21,21 @@ export default function RootLayout({
   const getCurrentUserDetails = useAuthStore(
     (state) => state.getCurrentUserDetails,
   );
+  const { clearProjectDetails } = useProjectStore(
+    useShallow((state) => ({ clearProjectDetails: state.clearProjectDetails })),
+  );
   const pathname = usePathname();
   useEffect(() => {
     if (pathname !== "/registration") {
       getCurrentUserDetails();
     }
   }, [pathname, getCurrentUserDetails]);
+
+  useEffect(() => {
+    if (pathname !== "/projects") {
+      clearProjectDetails();
+    }
+  }, [pathname, clearProjectDetails]);
 
   return (
     <html lang="en">

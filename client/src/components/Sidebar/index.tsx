@@ -4,6 +4,7 @@ import { useAuthStore } from "@/state/auth";
 import useProjectStore from "@/state/project.state";
 import useSidebarStore from "@/state/sidebar.state";
 import { Card } from "@mui/material";
+import { motion } from "motion/react";
 import { signOut } from "aws-amplify/auth";
 import {
   AlertCircle,
@@ -14,7 +15,6 @@ import {
   ChevronUp,
   Home,
   Layers3,
-  LockIcon,
   LucideIcon,
   Search,
   Settings,
@@ -47,8 +47,8 @@ const Sidebar = () => {
     }
   };
 
-  const sidebarClassNames = `fixed flex flex-col h-[100%] justify-between shadow-xl
-    transition-all duration-150 h-full z-40 dark:bg-black overflow-y-auto bg-white
+  const sidebarClassNames = ` fixed flex flex-col h-[100%] justify-between shadow-xl
+    transition-all duration-150 h-full z-40 dark:bg-dark-secondary overflow-y-auto bg-white
  
 
     ${isSidebarCollapsed ? "w-0 opacity-0     " : "w-64 opacity-100"}
@@ -58,7 +58,7 @@ const Sidebar = () => {
     <div className={sidebarClassNames}>
       <div className="flex h-[100%] w-full flex-col justify-start">
         {/* TOP LOGO */}
-        <div className="z-50 flex min-h-[56px] w-64 items-center justify-end bg-white px-6 pt-3 dark:bg-black">
+        <div className="z-50 flex min-h-[56px] w-64 items-center justify-end px-6 pt-3">
           {isSidebarCollapsed ? null : (
             <button className="py-3" onClick={toggleSidebar}>
               <X className="h-6 w-6 text-gray-800 hover:text-gray-500 dark:text-white" />
@@ -66,15 +66,25 @@ const Sidebar = () => {
           )}
         </div>
         {/* TEAM */}
-        <Card
-          elevation={0}
-          component={"div"}
-          className="flex items-center text-white select-none justify-center gap-5 border-y-[1.5px] border-gray-200 bg-blue-primary px-8 py-4 dark:border-gray-700"
+        {currentProject?.name && (
+        <motion.div
+        initial={{ opacity: 0,width:0 }}
+        animate={{ opacity: 1,width:'100%' }}
+        transition={{ duration: 0.5 }}
+
         >
-          <h3 className="text-md font-bold tracking-wide dark:text-gray-200">
-            {currentProject?.name || "Project Name"}
-          </h3>
-        </Card>
+            <Card
+              sx={{ backgroundColor: "#3b82f6" }}
+              elevation={0}
+              component={"div"}
+              className="flex select-none items-center justify-center gap-5 border-y-[1.5px] border-gray-200 px-8 py-4 text-white dark:border-gray-700"
+            >
+              <h3 className="text-md  text-nowrap overflow-ellipsis  text-center font-bold tracking-wide dark:text-gray-200">
+                {currentProject?.name}
+              </h3>
+            </Card>
+        </motion.div>
+        )}
         {/* NAVBAR LINKS */}
         <nav className="z-10 w-full">
           <SidebarLink icon={Home} label="Home" href="/" />
@@ -146,7 +156,7 @@ const Sidebar = () => {
           </>
         )}
       </div>
-      <div className="z-10 mt-32 flex w-full flex-col items-center gap-4 px-8 py-4 dark:bg-black md:hidden">
+      <div className="z-10 mt-32 flex w-full flex-col items-center gap-4 px-8 py-4 md:hidden">
         <div className="flex w-full flex-col items-center gap-2">
           <div className="align-center flex h-9 w-9 justify-center">
             {!!user?.profilePictureUrl ? (
@@ -190,7 +200,7 @@ const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
   return (
     <Link href={href} className="w-full">
       <div
-        className={`relative flex cursor-pointer items-center gap-3 transition-colors hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-700 ${
+        className={`relative flex cursor-pointer items-center gap-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${
           isActive ? "bg-gray-100 text-white dark:bg-gray-600" : ""
         } justify-start px-8 py-3`}
       >
