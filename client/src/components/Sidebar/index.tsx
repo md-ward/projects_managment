@@ -77,7 +77,7 @@ const Sidebar = () => {
               sx={{ backgroundColor: "#3b82f6" }}
               elevation={0}
               component={"div"}
-              className="flex select-none items-center justify-center gap-5 border-y-[1.5px] border-gray-200 px-8 py-4 text-white dark:border-gray-700"
+              className="flex  select-none items-center justify-center gap-5 border-y-[1.5px] border-gray-200 px-8 py-4 !text-white dark:border-gray-700"
             >
               <h3 className="text-md  text-nowrap overflow-ellipsis  text-center font-bold tracking-wide dark:text-gray-200">
                 {currentProject?.name}

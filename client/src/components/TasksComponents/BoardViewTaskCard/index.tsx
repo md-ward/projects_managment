@@ -7,7 +7,7 @@ import DropdownMenu from "@/components/TasksComponents/TaskDropDownMenu";
 import { Card, CardHeader } from "@mui/material";
 import { motion } from "motion/react";
 import useDeletionDropzone from "@/state/deletionDropzone";
-
+import { listStatusColor } from "@/lib/utils";
 const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
   const setDropzoneOpen = useDeletionDropzone((state) => state.setDropzoneOpen);
 
@@ -64,10 +64,14 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
       transition={{ duration: 0.4, type: "tween", ease: "easeInOut" }}
     >
       <Card
+        key={task.id}
         ref={(instance) => {
           drag(instance);
         }}
-        className={`mb-4 rounded-md bg-white shadow dark:bg-dark-secondary ${
+        sx={{
+          boxShadow: `0 0 0 1px ${listStatusColor[task.status ?? "todo"]} !important`,
+        }}
+        className={`mb-4 rounded-md bg-white shadow  dark:bg-dark-secondary ${
           isDragging ? "opacity-50" : "opacity-100"
         }`}
       >
@@ -91,8 +95,8 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
             className="h-auto w-full rounded-t-md"
           />
         )}
-        <div className="p-4 md:p-6">
-          <p className="text-sm text-gray-600 dark:text-neutral-500">
+        <div className="grid grid-flow-row grid-rows-4 p-4 md:p-6">
+          <p className="row-span-2 text-sm text-gray-600 dark:text-neutral-500">
             {task.description}
           </p>
           <div className="flex flex-1 flex-wrap items-center gap-2">
@@ -112,7 +116,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
           <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" />
 
           <div className="mt-3 flex items-center justify-between">
-            <div className="flex gap-2 bg-red-200 p-2">
+            <div className="flex h-fit w-fit gap-2">
               {task?.author && task.author.profilePictureUrl && (
                 <Image
                   title={"Author: " + task.author.username}
@@ -121,18 +125,18 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
                   alt={"Author: " + task.author.username}
                   width={30}
                   height={30}
-                  className="z-10 aspect-square overflow-hidden rounded-full border-2 border-white object-cover ring-1 ring-blue-200 ring-offset-1 dark:border-dark-secondary"
+                  className="z-10 aspect-square size-12 rounded-full border-2 border-white object-cover ring-1 ring-blue-200 ring-offset-1 dark:border-dark-secondary"
                 />
               )}
               {task?.assignee && task.assignee.profilePictureUrl && (
                 <Image
                   title={"Assignee: " + task.assignee.username}
                   key={task.assignee.userId}
-                  src={"/" + task.assignee.profilePictureUrl}
+                  src={task.assignee.profilePictureUrl}
                   alt={task.assignee.username || "Assignee"}
                   width={30}
                   height={30}
-                  className="aspect-square rounded-full border-2 border-white object-cover ring-1 ring-orange-200 ring-offset-1 dark:border-dark-secondary"
+                  className="z-10 aspect-square size-12 rounded-full border-2 border-white object-cover ring-1 ring-orange-200 ring-offset-1 dark:border-dark-secondary"
                 />
               )}
             </div>

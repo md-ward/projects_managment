@@ -103,7 +103,7 @@ const TaskColumn = ({ status, tasks, moveTask }: TaskColumnProps) => {
     >
       <div className="mb-3 flex w-full">
         <div
-          className={`w-2 !bg-[${statusColor[status]}] rounded-s-lg`}
+          className={`w-2  rounded-s-lg`}
           style={{ backgroundColor: statusColor[status] }}
         />
         <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-5 py-4 dark:bg-dark-secondary">
