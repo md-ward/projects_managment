@@ -3,6 +3,8 @@ import { Status, Task } from "./api";
 import axios from "axios";
 import useAlertStore from "./alert.state";
 interface TaskStore {
+  currentUserTasks: Task[] | null;
+  getCurrentUserTasks: () => Promise<void>;
   deleteTask: () => void;
   isDeleteTaskModalOpen: boolean;
   deleteTaskId: number | null;
@@ -12,6 +14,7 @@ interface TaskStore {
   isModalNewTaskOpen: boolean;
   task: Task | null;
   setTask: (task: Partial<Task>) => void;
+  setTasks: (tasks: Task[]) => void;
   createTask: () => void;
   tasks: Task[];
   getTasks: (projectId: number) => void;
@@ -31,6 +34,7 @@ const useTaskStore = create<TaskStore>((set, get) => ({
   },
   clearTask: () => set({ task: null }),
 
+  setTasks: (tasks) => set({ tasks }),
   createTask: async () => {
     try {
       set({ isLoading: true, isError: null });
@@ -130,5 +134,22 @@ const useTaskStore = create<TaskStore>((set, get) => ({
       deleteTaskId: taskId,
     }));
   },
+
+currentUserTasks: null,
+  getCurrentUserTasks: async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/user`,
+        {
+          withCredentials: true,
+        },
+      );
+      set({ currentUserTasks: response.data });
+    } catch (error) {
+      console.error("Error fetching current user tasks:", error);
+    }
+  },
+
+
 }));
 export default useTaskStore;

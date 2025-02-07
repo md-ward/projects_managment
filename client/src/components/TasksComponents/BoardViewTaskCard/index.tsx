@@ -8,8 +8,25 @@ import { Card, CardHeader } from "@mui/material";
 import { motion } from "motion/react";
 import useDeletionDropzone from "@/state/deletionDropzone";
 import { listStatusColor } from "@/lib/utils";
+import { useState, useRef, useEffect } from "react";
+import imgUrlChecker from "@/lib/imgUrlChecker";
 const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
   const setDropzoneOpen = useDeletionDropzone((state) => state.setDropzoneOpen);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (textRef.current) {
+        setIsOverflowing(textRef.current.scrollHeight > 40);
+      }
+    };
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [task.description]); // Recalculate if description changes
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
@@ -57,6 +74,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
 
   return (
     <motion.div
+    className="min-h-60"
       key={task.id}
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -71,7 +89,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
         sx={{
           boxShadow: `0 0 0 1px ${listStatusColor[task.status ?? "todo"]} !important`,
         }}
-        className={`mb-4 rounded-md bg-white shadow  dark:bg-dark-secondary ${
+        className={`mb-4 rounded-md bg-white shadow dark:bg-dark-secondary ${
           isDragging ? "opacity-50" : "opacity-100"
         }`}
       >
@@ -88,17 +106,33 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
 
         {task.attachments && task.attachments.length > 0 && (
           <Image
-            src={"/" + (task.attachments[0]?.fileURL ?? "")}
+            src={imgUrlChecker(task.attachments[0]?.fileURL ?? "")}
             alt={task.attachments[0]?.fileName ?? ""}
             width={400}
             height={200}
             className="h-auto w-full rounded-t-md"
           />
         )}
-        <div className="grid grid-flow-row grid-rows-4 p-4 md:p-6">
-          <p className="row-span-2 text-sm text-gray-600 dark:text-neutral-500">
-            {task.description}
-          </p>
+        <div className="flex flex-col gap-2 p-4 md:p-6">
+          <div>
+            <p
+              ref={textRef}
+              className={`overflow-hidden text-sm text-gray-600 transition-all dark:text-neutral-500 ${
+                isExpanded ? "max-h-full" : "max-h-10"
+              }`}
+            >
+              {task.description}
+            </p>
+
+            {isOverflowing && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="mt-1 text-sm text-blue-500 hover:underline dark:text-blue-400"
+              >
+                {isExpanded ? "Show less" : "Read more"}
+              </button>
+            )}
+          </div>
           <div className="flex flex-1 flex-wrap items-center gap-2">
             <div className="flex gap-2">
               {task.tags &&
@@ -121,7 +155,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
                 <Image
                   title={"Author: " + task.author.username}
                   key={task.author.userId}
-                  src={task.author.profilePictureUrl}
+                  src={imgUrlChecker(task.author.profilePictureUrl)}
                   alt={"Author: " + task.author.username}
                   width={30}
                   height={30}
@@ -132,7 +166,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
                 <Image
                   title={"Assignee: " + task.assignee.username}
                   key={task.assignee.userId}
-                  src={task.assignee.profilePictureUrl}
+                  src={imgUrlChecker(task.assignee.profilePictureUrl)}
                   alt={task.assignee.username || "Assignee"}
                   width={30}
                   height={30}

@@ -11,6 +11,7 @@ interface ProjectStore {
   isModalOpen: boolean;
   toggleModal: () => void;
   projects: Project[];
+  setProjects: (projects: Project[]) => void;
   isLoading: boolean;
   error: string | null;
   currentProject?: Project | null;
@@ -82,6 +83,9 @@ const useProjectStore = create<ProjectStore>((set) => ({
         });
       }
     }
+  },
+  setProjects(projects) {
+    set({ projects });
   },
   createProject: async () => {
     try {

@@ -15,13 +15,13 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { User } from "@/state/api";
 import { useShallow } from "zustand/shallow";
+import imgUrlChecker from "@/lib/imgUrlChecker";
 
 const SettingsForm = () => {
-  const { currentUser, updateUser, getCurrentUserDetails } = useAuthStore(
+  const { currentUser, updateUser,  } = useAuthStore(
     useShallow((state) => ({
       currentUser: state.currentUser,
       updateUser: state.updateUser,
-      getCurrentUserDetails: state.getCurrentUserDetails,
     })),
   );
   const [formData, setFormData] = useState<{
@@ -115,7 +115,11 @@ const SettingsForm = () => {
           className="group relative size-40 overflow-hidden rounded-full"
         >
           <Image
-            src={previewImage || currentUser?.profilePictureUrl || "/default-profile.png"}
+            src={
+              imgUrlChecker(previewImage as string)  ||
+              imgUrlChecker(currentUser?.profilePictureUrl as string) ||
+              "/default-profile.png"
+            }
             alt="profile picture"
             width={160}
             height={160}
@@ -167,7 +171,7 @@ const SettingsForm = () => {
             </Typography>
             <TextField
               name="fullName"
-              value={formData.fullName|| currentUser?.fullname}
+              value={formData.fullName || currentUser?.fullname}
               onChange={handleInputChange}
               variant="outlined"
               size="small"
@@ -191,7 +195,7 @@ const SettingsForm = () => {
             </Typography>
             <TextField
               name="username"
-              value={formData.username|| currentUser?.username}
+              value={formData.username || currentUser?.username}
               onChange={handleInputChange}
               variant="outlined"
               size="small"

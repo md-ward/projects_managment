@@ -16,7 +16,7 @@ import Image from "next/image";
 import { useShallow } from "zustand/shallow";
 import ModalNewProject from "@/components/ProjectComponents/ModalNewProject";
 import useProjectStore from "@/state/project.state";
-import useAlertStore from "@/state/alert.state";
+import imgUrlChecker from "@/lib/imgUrlChecker";
 
 const Navbar = () => {
   const { isDarkMode, setIsDarkMode } = useModeStore((state) => state);
@@ -102,7 +102,7 @@ const Navbar = () => {
           <div className="align-center flex h-9 w-9 justify-center">
             {user?.profilePictureUrl ? (
               <Image
-                src={user?.profilePictureUrl}
+                src={imgUrlChecker(user?.profilePictureUrl)}
                 alt={user?.username || "User Profile Picture"}
                 width={100}
                 height={50}

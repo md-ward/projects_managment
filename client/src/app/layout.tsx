@@ -30,7 +30,17 @@ export default function RootLayout({
       getCurrentUserDetails();
     }
   }, [pathname, getCurrentUserDetails]);
-
+  useEffect(() => {
+    const body = document.getElementById("html");
+    
+    if (pathname.startsWith("/projects")) {
+      body?.style.setProperty("overflow", "hidden");
+      // alert("hi");
+    } else {
+      body?.style.removeProperty("overflow");
+    }
+  }, [pathname]);
+  
   useEffect(() => {
     if (pathname !== "/projects") {
       clearProjectDetails();
@@ -38,7 +48,7 @@ export default function RootLayout({
   }, [pathname, clearProjectDetails]);
 
   return (
-    <html lang="en">
+    <html id="html" lang="en">
       <body className={inter.className + " " + mode}>
         {pathname === "/registration" ? (
           <>{children}</>

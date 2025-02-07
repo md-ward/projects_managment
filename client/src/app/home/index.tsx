@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Header from "@/components/Header";
 import {
@@ -30,18 +30,18 @@ const taskColumns: GridColDef[] = [
   { field: "dueDate", headerName: "Due Date", width: 150 },
 ];
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = {
+  toDo: "#0088FE",
+  workInProgress: "#00C49F",
+  Backlog: "#FFBB28",
+  Completed: "#FF8042",
+};
 
 const HomePage = () => {
-  const {
-    tasks,
-    isLoading: tasksLoading,
-    isError: tasksError,
-  } = useTaskStore(
+  const { currentUserTasks, getCurrentUserTasks } = useTaskStore(
     useShallow((state) => ({
-      tasks: state.tasks,
-      isLoading: state.isLoading,
-      isError: state.isError,
+      currentUserTasks: state.currentUserTasks,
+      getCurrentUserTasks: state.getCurrentUserTasks,
     })),
   );
   const { projects, isLoading: isProjectsLoading } = useProjectStore(
@@ -52,11 +52,11 @@ const HomePage = () => {
   );
 
   const isDarkMode = useModeStore((state) => state.isDarkMode);
+  useEffect(() => {
+    getCurrentUserTasks();
+  }, [getCurrentUserTasks]);
 
-  if (tasksLoading || isProjectsLoading) return <div>Loading..</div>;
-  if (tasksError || !tasks || !projects) return <div>Error fetching data</div>;
-
-  const priorityCount = tasks.reduce(
+  const priorityCount = (currentUserTasks ?? []).reduce(
     (acc: Record<string, number>, task: Task) => {
       const { priority } = task;
       acc[priority as Priority] = (acc[priority as Priority] || 0) + 1;
@@ -130,7 +130,25 @@ const HomePage = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="count" fill={chartColors.bar} />
+              <Bar dataKey="count">
+                {taskDistribution.map((entry, index) => {
+                  const priorityColorMap: Record<string, string> = {
+                    backlog: "#FF0000",
+                    urgent: "#FF4500",
+                    high: "#FF8C00",
+                    medium: "#FFD700",
+                    low: "#32CD32",
+                  };
+                  return (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        priorityColorMap[entry.name.toLowerCase()] || "#8884d8"
+                      }
+                    />
+                  );
+                })}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -142,10 +160,7 @@ const HomePage = () => {
             <PieChart>
               <Pie dataKey="count" data={projectStatus} fill="#82ca9d" label>
                 {projectStatus.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+                  <Cell key={`cell-${index}`} fill={chartColors.pieFill} />
                 ))}
               </Pie>
               <Tooltip />
@@ -159,10 +174,9 @@ const HomePage = () => {
           </h3>
           <div style={{ height: 400, width: "100%" }}>
             <DataGrid
-              rows={tasks}
+              rows={currentUserTasks || []}
               columns={taskColumns}
               checkboxSelection
-              loading={tasksLoading}
               getRowClassName={() => "data-grid-row"}
               getCellClassName={() => "data-grid-cell"}
               className={dataGridClassNames}

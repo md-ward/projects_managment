@@ -11,6 +11,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     (state) => state.isSidebarCollapsed,
   );
 
+  
   return (
     <div className="flex min-h-screen w-full bg-gray-50 text-gray-900">
       <AlertPopup />

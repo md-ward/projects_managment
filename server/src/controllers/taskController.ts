@@ -63,6 +63,35 @@ export const getTasks = async (
       .json({ message: `Error retrieving tasks: ${error.message}` });
   }
 };
+export const currentUserTasks = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const userId = req.user?.userId;
+  try {
+    const tasks = await prisma.task.findMany({
+      where: {
+        OR: [
+          { authorUserId: Number(userId) },
+          { assignedUserId: Number(userId) },
+        ],
+      },
+      include: {
+        author: true,
+        assignee: true,
+      },
+    });
+    if (tasks.length === 0) {
+      res.status(404).json({ message: "User has no tasks" });
+    } else {
+      res.json(tasks);
+    }
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: `Error retrieving tasks: ${error.message}` });
+  }
+};
 
 export const createTask = async (
   req: AuthenticatedRequest,
