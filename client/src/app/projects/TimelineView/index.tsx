@@ -82,7 +82,7 @@ const Timeline = () => {
         <div className="px-4 pb-5 pt-1">
           <button
             className="flex items-center rounded bg-blue-primary px-3 py-2 text-white hover:bg-blue-600"
-            onClick={toggleModal}
+            onClick={() => toggleModal(false)}
           >
             Add New Task
           </button>

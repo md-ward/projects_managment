@@ -1,30 +1,22 @@
 import React, { useState } from "react";
-import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import { EllipsisVertical, MoreVerticalIcon } from "lucide-react";
-import useTaskStore from "@/state/task.state";
+import { MoreVerticalIcon } from "lucide-react";
 
-const DropdownMenu = ({ taskId }: { taskId: number }) => {
+interface DropdownMenuProps {
+  menuItems: { label: string; onClick: (props: any) => void }[];
+}
+
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ menuItems }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const toggleDeleteTaskModal = useTaskStore(
-    (state) => state.toggleDeleteTaskModal,
-  );
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget); // Set the clicked button as the anchor
+    setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
-    setAnchorEl(null); // Close the menu
+    setAnchorEl(null);
   };
-
-  const handleEdit = () => {
-    // Handle edit action
-    console.log(`Edit task with ID: ${taskId}`);
-    handleClose();
-  };
-  const open = Boolean(anchorEl);
 
   return (
     <div>
@@ -32,30 +24,27 @@ const DropdownMenu = ({ taskId }: { taskId: number }) => {
         onClick={handleClick}
         className="flex flex-shrink-0 items-center justify-center dark:text-neutral-500"
       >
-<MoreVerticalIcon />
+        <MoreVerticalIcon />
       </button>
 
       <Menu
         anchorEl={anchorEl}
-        open={open}
+        open={Boolean(anchorEl)}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "left",
-        }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
-        <MenuItem onClick={handleEdit}>Edit Task</MenuItem>
-        <MenuItem
-          onClick={() => {
-            toggleDeleteTaskModal(taskId), handleClose();
-          }}
-        >
-          Delete Task
-        </MenuItem>
+        {menuItems.map((item, index) => (
+          <MenuItem
+            key={index}
+            onClick={(props) => {
+              item.onClick(props);
+              handleClose(); // Close menu after clicking
+            }}
+          >
+            {item.label}
+          </MenuItem>
+        ))}
       </Menu>
     </div>
   );

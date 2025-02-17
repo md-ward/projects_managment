@@ -1,14 +1,14 @@
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Status, Task as TaskType } from "@/state/api";
-import { Delete, EllipsisVertical, Plus, Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import useTaskStore from "@/state/task.state";
 import { reverseStatusMapping, statusColor, statusMapping } from "@/lib/utils";
 import { useShallow } from "zustand/shallow";
 import BoardViewTaskCard from "@/components/TasksComponents/BoardViewTaskCard";
 import { motion, AnimatePresence } from "motion/react";
 import useDeletionDropzone from "@/state/deletionDropzone";
-import { useState, useLayoutEffect } from "react";
+import MobileView from "./MobileView";
 
 const BoardView = () => {
   const { tasks, updateTaskStatus } = useTaskStore(
@@ -25,7 +25,13 @@ const BoardView = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <DeletionDropZone />
-      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
+      <MobileView
+        tasks={tasks}
+        status={"todo" as Status}
+        key={"todo"}
+      ></MobileView>
+
+      <div className="hidden grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid xl:grid-cols-4">
         {Object.entries(statusMapping).map(([, value]) => (
           <TaskColumn
             key={value}
@@ -60,7 +66,7 @@ const DeletionDropZone = () => {
       <AnimatePresence>
         {isDropzoneOpen && (
           <motion.div
-            className={`flex w-fit items-center justify-center  ${isOver ? "bg-red-500" : "bg-red-200"} rounded-full p-4`}
+            className={`flex w-fit items-center justify-center ${isOver ? "bg-red-500" : "bg-red-200"} rounded-full p-4`}
             key="deleteDropzone"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -91,25 +97,12 @@ const TaskColumn = ({ status, tasks, moveTask }: TaskColumnProps) => {
     }),
   }));
 
-  const [height, setHeight] = useState("100dvh"); // Default initial height
-
-  useLayoutEffect(() => {
-    if (tasks.length > 0) {
-      const tasksCount = tasks.filter(
-        (task) => task.status && statusMapping[task.status] === status,
-      ).length;
-      console.log(tasksCount);
-
-      setHeight(`calc(100dvh + ${tasksCount * 18}rem)`);
-    }
-  }, [tasks, status]); // Runs after tasks are updated
-
   return (
     <div
       ref={(instance) => {
         drop(instance);
       }}
-      className={`relative rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
+      className={`relative rounded-lg sm:py-5 md:py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
     >
       <div className="mb-3 flex w-full">
         <div
@@ -132,19 +125,16 @@ const TaskColumn = ({ status, tasks, moveTask }: TaskColumnProps) => {
             </span>
           </h3>
           <div className="flex items-center gap-1">
-            <button className="flex h-6 w-5 items-center justify-center dark:text-neutral-500">
-              <EllipsisVertical size={26} />
-            </button>
             <button
               className="flex h-6 w-6 items-center justify-center rounded bg-gray-200 dark:bg-dark-tertiary dark:text-white"
-              onClick={toggleModal}
+              onClick={() => toggleModal(false)}
             >
               <Plus size={16} />
             </button>
           </div>
         </div>
       </div>
-      <div style={{ height }} className="!overflow-scroll">
+      <div className="h-[calc(30rem+8px)] !overflow-y-auto p-1 pb-7">
         {tasks
           .filter(
             (task) => task.status && statusMapping[task.status] === status,

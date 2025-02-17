@@ -39,7 +39,7 @@ export const getProjects = async (
     const userId = req.user?.userId;
 
     const projects = await prisma.project.findMany({
-      where: { 
+      where: {
         projectManagerId: userId,
       },
       select: {
@@ -47,26 +47,6 @@ export const getProjects = async (
         name: true,
         projectManagerId: true,
       },
-      // include: {
-
-      // projectTeams: {
-      //   select: {
-      //     team: {
-      //       select: {
-      //         teamName: true,
-      //         members: {
-      //           select: { full_name: true, username: true },
-      //         },
-      //       },
-      //     },
-      //   },
-      // },
-      // projectManager: {
-      //   select: {
-      //     username: true,
-      //   },
-      // },
-      // },
     });
     res.json(projects);
   } catch (error: any) {

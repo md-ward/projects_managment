@@ -1,6 +1,6 @@
 import { useDrag } from "react-dnd";
 import { Task as TaskType } from "@/state/api";
-import { MessageSquareMore } from "lucide-react";
+import { Group, MessageSquareMore, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import DropdownMenu from "@/components/TasksComponents/TaskDropDownMenu";
@@ -10,6 +10,8 @@ import useDeletionDropzone from "@/state/deletionDropzone";
 import { listStatusColor } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import imgUrlChecker from "@/lib/imgUrlChecker";
+import useTaskStore from "@/state/task.state";
+import { useShallow } from "zustand/shallow";
 const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
   const setDropzoneOpen = useDeletionDropzone((state) => state.setDropzoneOpen);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -71,10 +73,32 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
       {priority}
     </div>
   );
+  const { toggleDeleteTaskModal, toggleModal } = useTaskStore(
+    useShallow((state) => ({
+      toggleDeleteTaskModal: state.toggleDeleteTaskModal,
+      toggleModal: state.toggleModal,
+    })),
+  );
 
+  const menuItems = [
+    {
+      label: "Edit",
+      onClick: () => {
+        // Handle edit action, use task.id
+        console.log("Editing task with ID:", task.id);
+        toggleModal(true, task);
+      },
+    },
+    {
+      label: "Delete",
+      onClick: () => {
+        toggleDeleteTaskModal(task.id);
+      },
+    },
+  ];
   return (
     <motion.div
-    className="min-h-60"
+      className="min-h-60"
       key={task.id}
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -101,7 +125,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
               ? formattedStartDate + " - " + formattedDueDate
               : formattedStartDate || formattedDueDate
           }
-          action={<DropdownMenu taskId={task.id} />}
+          action={<DropdownMenu menuItems={menuItems} />}
         />
 
         {task.attachments && task.attachments.length > 0 && (
@@ -147,7 +171,12 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
             </div>
           </div>
 
-          <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" />
+          <div className="flex h-fit items-center align-baseline text-gray-500 dark:text-neutral-500">
+            <h3>Team :</h3>
+            <span className="ml-1 text-sm dark:text-neutral-400">
+              {task?.teamName}
+            </span>
+          </div>
 
           <div className="mt-3 flex items-center justify-between">
             <div className="flex h-fit w-fit gap-2">
@@ -175,11 +204,20 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
               )}
             </div>
 
-            <div className="flex items-center text-gray-500 dark:text-neutral-500">
-              <MessageSquareMore size={20} />
-              <span className="ml-1 text-sm dark:text-neutral-400">
-                {numberOfComments}
-              </span>
+            <div className="flex items-center text-gray-500 gap-2 dark:text-neutral-500">
+              <div>
+                <Paperclip size={20} />
+                <span className="ml-1 text-sm dark:text-neutral-400">
+                  {/* {task.attachments && task.attachments.length} */}
+                5
+                </span>
+              </div>
+              <div>
+                <MessageSquareMore size={20} />
+                <span className="ml-1 text-sm dark:text-neutral-400">
+                  {numberOfComments}
+                </span>
+              </div>
             </div>
           </div>
         </div>

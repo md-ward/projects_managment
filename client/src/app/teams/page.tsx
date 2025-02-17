@@ -23,6 +23,7 @@ const CustomToolbar = () => (
 
 const Teams = () => {
   interface TeamDetails {
+    projectName: string;
     description: string;
     members: { userId: string; fullname: string }[];
   }
@@ -37,24 +38,22 @@ const Teams = () => {
   const [teamDetailsModalOpen, setTeamDetailsModalOpen] =
     useState<boolean>(false);
   const projects = useProjectStore((state) => state.projects);
-  const userProjectId = projects.map((project: any) => project.projectManagerId);
+  const userProjectId = projects.map(
+    (project: any) => project.projectManagerId,
+  );
 
   useEffect(() => {
     getTeams();
-
-    
   }, [getTeams]);
 
-  useEffect(() => {
-    console.log(userProjectId, "userProjectId");
-    console.log(teams, "teams");
-    
-  }, [userProjectId, teams]);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const isDarkMode = useModeStore((state) => state.isDarkMode);
 
   const handleViewDetails = (team: any) => {
+    console.log({team});
+    
     const teamDetails: TeamDetails = {
+      projectName: team.projectName,
       description: team.description,
       members: team.teamMembers.map((member: any) => ({
         userId: member.user.userId,

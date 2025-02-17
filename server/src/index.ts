@@ -5,11 +5,12 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 /* ROUTE IMPORTS */
-import projectRoutes from "./routes/projectRoutes";
-import taskRoutes from "./routes/taskRoutes";
-import searchRoutes from "./routes/searchRoutes";
-import userRoutes from "./routes/userRoutes";
-import teamRoutes from "./routes/teamRoutes";
+import projectRoutes from "./routes/projectRouter";
+import taskRoutes from "./routes/taskRouter";
+import searchRoutes from "./routes/searchRouter";
+import userRoutes from "./routes/userRouter";
+import teamRoutes from "./routes/teamRouter";
+import attac from "./routes/attachmentRouter";
 import path from "path";
 /* CONFIGURATIONS */
 dotenv.config();
@@ -40,6 +41,7 @@ app.use("/tasks", taskRoutes);
 app.use("/search", searchRoutes);
 app.use("/users", userRoutes);
 app.use("/teams", teamRoutes);
+app.use("/attachments", attac);
 
 const port = Number(process.env.PORT) || 8000;
 app.listen(port, () => {

@@ -25,12 +25,10 @@ const useTeamStore = create<TeamStore>((set) => ({
         },
       );
       set({ newTeam: response.data, isLoading: false });
-      useAlertStore
-        .getState()
-        .showAlert(
-          `Team ${team.teamName} has been created successfully`,
-          "success",
-        );
+      useAlertStore.getState().showAlert({
+        message: `Team ${team.teamName} has been created successfully`,
+        alertType: "success",
+      });
     } catch (error) {
       console.error("Error creating team:", error);
       set({ isError: true, isLoading: false });

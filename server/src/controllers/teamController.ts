@@ -96,7 +96,6 @@ export const createTeam = async (
     res.status(500).json({ message: `Error creating team: ${error.message}` });
   }
 };
-
 export const getTeams = async (
   req: AuthenticatedRequest,
   res: Response
@@ -117,17 +116,23 @@ export const getTeams = async (
         productOwnerUserId: true,
         projectManagerUserId: true,
         description: true,
-
         teamMembers: {
           select: {
             user: { select: { userId: true, username: true, fullname: true } },
           },
         },
+        projectTeams: {
+          select: {
+            project: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
-
     });
-    console.log(teams);
-    
+
     const projectOwners = await Promise.all(
       teams.map(async (team) => {
         const projectOwner = await prisma.user.findUnique({
@@ -137,6 +142,7 @@ export const getTeams = async (
         return projectOwner;
       })
     );
+
     const projectManagers = await Promise.all(
       teams.map(async (team) => {
         const projectManager = await prisma.user.findUnique({
@@ -147,21 +153,26 @@ export const getTeams = async (
       })
     );
 
-    teams = teams.map((team, index) => {
-      return {
-        ...team,
-        productOwnerUsername: projectOwners[index]?.fullname,
-        projectManagerUsername: projectManagers[index]?.fullname,
-      };
-    });
+    const data = teams.map((team, index) => ({
+      id: team.id,
+      teamName: team.teamName,
+      teamMembers: team.teamMembers,
+      description: team.description,
+      projectName: team.projectTeams[0]?.project?.name ?? null, // Keep only the project name
+      productOwnerUsername: projectOwners[index]?.fullname ?? null,
+      projectManagerUsername: projectManagers[index]?.fullname ?? null,
+      productOwnerUserId: team.productOwnerUserId,
+      projectManagerUserId: team.projectManagerUserId,
+    }));
 
-    res.json(teams);
+    res.json(data);
   } catch (error: any) {
     res
       .status(500)
       .json({ message: `Error retrieving teams: ${error.message}` });
   }
 };
+
 // Join a team
 export const joinTeam = async (
   req: AuthenticatedRequest,
@@ -202,6 +213,11 @@ export const getProjectTeams = async (
     const projectTeams = await prisma.projectTeam.findMany({
       where: { projectId: Number(projectId) },
       select: {
+        project: {
+          select: {
+            name: true,
+          },
+        },
         team: {
           select: {
             id: true,

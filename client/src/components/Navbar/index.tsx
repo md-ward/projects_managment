@@ -17,6 +17,7 @@ import { useShallow } from "zustand/shallow";
 import ModalNewProject from "@/components/ProjectComponents/ModalNewProject";
 import useProjectStore from "@/state/project.state";
 import imgUrlChecker from "@/lib/imgUrlChecker";
+import AnimatedSwitchingButton from "../AnimatedSwitchingButton";
 
 const Navbar = () => {
   const { isDarkMode, setIsDarkMode } = useModeStore((state) => state);
@@ -41,7 +42,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="flex items-center justify-between bg-white px-4 py-3 dark:bg-dark-secondary">
+    <div className="sticky  top-0 z-30 flex items-center justify-between bg-white px-4 py-3 dark:bg-dark-secondary">
       {/* Search Bar */}
       <div className="flex items-center gap-8">
         {!isSidebarCollapsed ? null : (
@@ -70,20 +71,15 @@ const Navbar = () => {
 
       {/* Icons */}
       <div className="flex items-center">
-        <button
-          onClick={() => setIsDarkMode()}
-          className={
-            isDarkMode
-              ? `rounded p-2 dark:hover:bg-gray-700`
-              : `rounded p-2 hover:bg-gray-100`
+        <AnimatedSwitchingButton
+          isEditable={Boolean(isDarkMode === "dark")}
+          handleEditToggle={setIsDarkMode}
+          FirstIcon={<Sun className="h-6 w-6 cursor-pointer text-black  dark:text-white" />}
+          SecondIcon={
+            <Moon className="h-6 w-6 cursor-pointer text-black dark:text-white" />
           }
-        >
-          {isDarkMode === "light" ? (
-            <Sun className="h-6 w-6 cursor-pointer dark:text-white" />
-          ) : (
-            <Moon className="h-6 w-6 cursor-pointer dark:text-white" />
-          )}
-        </button>
+        />
+ 
         <Link
           href="/settings"
           className={

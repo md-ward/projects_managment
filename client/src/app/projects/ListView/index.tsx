@@ -24,7 +24,7 @@ const ListView = () => {
           buttonComponent={
             <button
               className="flex items-center rounded bg-blue-primary px-3 py-2 text-white hover:bg-blue-600"
-              onClick={toggleModal}
+              onClick={() => toggleModal(false)}
             >
               Add Task
             </button>
@@ -36,7 +36,7 @@ const ListView = () => {
         {isLoading ? (
           <div className="loader flex items-center justify-center"></div>
         ) : tasks.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6 max-h-screen !overflow-scroll h-full">
             {tasks?.map((task: Task) => <TaskCard key={task.id} task={task} />)}
           </div>
         ) : (

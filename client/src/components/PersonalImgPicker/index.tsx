@@ -11,14 +11,15 @@ import {
 } from "@mui/material";
 import { Camera, Edit2, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+
 import { User } from "@/state/api";
 import { useShallow } from "zustand/shallow";
 import imgUrlChecker from "@/lib/imgUrlChecker";
+import AnimatedSwitchingButton from "../AnimatedSwitchingButton";
 
 const SettingsForm = () => {
-  const { currentUser, updateUser,  } = useAuthStore(
+  const { currentUser, updateUser } = useAuthStore(
     useShallow((state) => ({
       currentUser: state.currentUser,
       updateUser: state.updateUser,
@@ -77,38 +78,19 @@ const SettingsForm = () => {
     });
   };
   return (
-    <Card className="flex w-full max-w-2xl flex-col items-center space-y-6 place-self-center p-6">
+    <Card className="flex w-full max-w-2xl flex-col items-center space-y-6 place-self-center p-6 dark:bg-dark-tertiary dark:!text-white">
       <form
-        className="relative flex flex-col items-center gap-2"
+        className="relative flex flex-col items-center gap-2 *:h-fit *:w-fit *:rounded-md *:border-white *:p-2 *:dark:text-gray-200"
         onSubmit={handleSubmit}
       >
         {/* Profile Picture Picker */}
         <span className="absolute right-0 top-0 z-30 size-11 rounded-md bg-blue-400">
-          <IconButton className="text-white" onClick={handleEditToggle}>
-            <AnimatePresence mode="wait">
-              {!isEditable ? (
-                <motion.div
-                  key={"edit"}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Edit2 />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={"close"}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <X />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </IconButton>
+          <AnimatedSwitchingButton
+            isEditable={isEditable}
+            handleEditToggle={handleEditToggle}
+            FirstIcon={<Edit2 />}
+            SecondIcon={<X />}
+          />
         </span>
         <div
           title="Change profile picture"
@@ -116,7 +98,7 @@ const SettingsForm = () => {
         >
           <Image
             src={
-              imgUrlChecker(previewImage as string)  ||
+              imgUrlChecker(previewImage as string) ||
               imgUrlChecker(currentUser?.profilePictureUrl as string) ||
               "/default-profile.png"
             }
@@ -124,7 +106,7 @@ const SettingsForm = () => {
             width={160}
             height={160}
             loading="lazy"
-            className="aspect-square h-full rounded-full object-fill"
+            className="aspect-square h-full rounded-full object-cover"
           />
           {isEditable && (
             <label
@@ -142,7 +124,6 @@ const SettingsForm = () => {
             </label>
           )}
         </div>
-        <Divider />
 
         {/* Form Fields */}
         <Box
@@ -230,7 +211,6 @@ const SettingsForm = () => {
             />
           </Box>
         </Box>
-        <Divider />
 
         {/* Save Button */}
         <Box

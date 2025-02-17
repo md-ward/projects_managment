@@ -76,7 +76,7 @@ const TableView = () => {
           buttonComponent={
             <button
               className="flex items-center rounded bg-blue-primary px-3 py-2 text-white hover:bg-blue-600"
-              onClick={toggleModal}
+              onClick={() => toggleModal(false)}
             >
               Add Task
             </button>

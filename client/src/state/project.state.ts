@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { Project, Team } from "./api";
 import axios from "axios";
-import useTaskStore from "./task.state";
 import useAlertStore from "./alert.state";
 
 interface ProjectStore {

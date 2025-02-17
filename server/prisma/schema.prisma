@@ -9,42 +9,42 @@ datasource db {
 }
 
 model User {
-  userId                        Int              @id @default(autoincrement())
-  email                         String           @unique
+  userId                        Int          @id @default(autoincrement())
+  email                         String       @unique
   password                      String
-  username                      String           @unique
+  username                      String       @unique
   profilePictureUrl             String?
-  role                          UserRole         @default(USER)
+  role                          UserRole     @default(USER)
   teamId                        Int?
-  createdAt                     DateTime         @default(now())
-  updatedAt                     DateTime         @updatedAt
+  createdAt                     DateTime     @default(now())
+  updatedAt                     DateTime     @updatedAt
   deletionToken                 String?
   deletionTokenExpires          DateTime?
   emailVerificationToken        String?
   emailVerificationTokenExpires DateTime?
-  isEmailVerified               Boolean          @default(false)
+  isEmailVerified               Boolean      @default(false)
   fullname                      String
   attachments                   Attachment[]
   comments                      Comment[]
   projects                      Project[]
-  assignedTasks                 Task[]           @relation("TaskAssignee")
-  authoredTasks                 Task[]           @relation("TaskAuthor")
-  taskAssignments               TaskAssignment[]
+  assignedTasks                 Task[]       @relation("TaskAssignee")
+  authoredTasks                 Task[]       @relation("TaskAuthor")
   teamMemberships               TeamMember[]
 
   @@index([email, username])
 }
 
 model Team {
-  id                   Int           @id @default(autoincrement())
+  id                   Int              @id @default(autoincrement())
   teamName             String
   productOwnerUserId   Int?
   projectManagerUserId Int?
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
   description          String?
   projectTeams         ProjectTeam[]
   teamMembers          TeamMember[]
+  TaskAssignment       TaskAssignment[]
 
   @@index([productOwnerUserId, projectManagerUserId])
 }
@@ -106,7 +106,7 @@ model Task {
   updatedAt       DateTime         @updatedAt
   attachments     Attachment[]
   comments        Comment[]
-  assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId])
+  assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId],onUpdate: Cascade)
   author          User             @relation("TaskAuthor", fields: [authorUserId], references: [userId])
   project         Project          @relation(fields: [projectId], references: [id])
   taskAssignments TaskAssignment[]
@@ -116,14 +116,14 @@ model Task {
 
 model TaskAssignment {
   id        Int      @id @default(autoincrement())
-  userId    Int
   taskId    Int
+  teamId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  task      Task     @relation(fields: [taskId], references: [id])
-  user      User     @relation(fields: [userId], references: [userId])
+  team      Team     @relation(fields: [teamId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id],onDelete: Cascade)
 
-  @@unique([userId, taskId])
+  @@unique([taskId])
 }
 
 model Attachment {
@@ -132,6 +132,7 @@ model Attachment {
   fileName     String?
   taskId       Int
   uploadedById Int
+  description  String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   task         Task     @relation(fields: [taskId], references: [id])

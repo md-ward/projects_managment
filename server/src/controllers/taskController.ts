@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Task } from "@prisma/client";
 import AuthenticatedRequest from "../types/authReqInterface";
 
 const prisma = new PrismaClient();
@@ -34,6 +34,15 @@ export const getTasks = async (
         ],
       },
       include: {
+        taskAssignments: {
+          select: {
+            team: {
+              select: {
+                teamName: true,
+              },
+            },
+          },
+        },
         author: {
           select: {
             fullname: true,
@@ -56,7 +65,14 @@ export const getTasks = async (
       },
     });
 
-    res.json(tasks);
+    // Transform the data: extract teamName and remove taskAssignments
+    const transformedTasks = tasks.map((task) => ({
+      ...task,
+      teamName: task.taskAssignments?.[0]?.team?.teamName || null, // Get first team name if exists
+      taskAssignments: undefined, // Remove the property
+    }));
+
+    res.json(transformedTasks);
   } catch (error: any) {
     res
       .status(500)
@@ -108,6 +124,7 @@ export const createTask = async (
     points,
     projectId,
     assignedUserId,
+    teamId,
   } = req.body.data;
 
   console.log(req.body.data);
@@ -127,26 +144,7 @@ export const createTask = async (
   }
 
   try {
-    const newTask = await prisma.task.create({
-      data: {
-        title,
-        description: description || null,
-        status: status || "ToDo", // Default to ToDo if not provided
-        priority,
-        tags: tags ? { set: tags } : { set: [] }, // Ensure tags match the schema structure
-        startDate: startDate ? new Date(startDate) : null,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        points: points || null,
-        authorUserId,
-        projectId,
-        assignedUserId: assignedUserId || null,
-      },
-    });
-
-    const task = await prisma.task.findUnique({
-      where: {
-        id: newTask.id,
-      },
+    const task = await prisma.task.create({
       include: {
         author: {
           select: {
@@ -168,7 +166,30 @@ export const createTask = async (
         comments: true,
         attachments: true,
       },
+      data: {
+        title,
+        description: description || null,
+        status: status || "ToDo", // Default to ToDo if not provided
+        priority,
+        tags: tags ? { set: tags } : { set: [] }, // Ensure tags match the schema structure
+        startDate: startDate ? new Date(startDate) : null,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        points: points || null,
+        authorUserId,
+        projectId,
+        assignedUserId: assignedUserId || null,
+        taskAssignments: {
+          createMany: {
+            data: [
+              {
+                teamId: teamId || null,
+              },
+            ],
+          },
+        },
+      },
     });
+
     res.status(201).json({ message: "Task created successfully", task });
   } catch (error: any) {
     console.error("Error creating a task:", error.message);
@@ -247,5 +268,30 @@ export const deleteTask = async (
     res.json({ message: "Task deleted successfully" });
   } catch (error: any) {
     res.status(500).json({ message: `Error deleting task: ${error.message}` });
+  }
+};
+
+export const updateTask = async (req: AuthenticatedRequest, res: Response) => {
+  const { taskId } = req.params;
+  let { task } = req.body;
+  delete task.id;
+  console.log(task, taskId, req.body);
+
+  try {
+    const updatedTask = await prisma.task.update({
+      where: {
+        id: Number(taskId),
+      },
+      data: {
+        ...task,
+
+        startDate: task.startDate ? new Date(task.startDate) : null,
+        dueDate: task.dueDate ? new Date(task.dueDate) : null,
+      } as Task,
+    });
+    res.json(updatedTask);
+  } catch (error: any) {
+    console.error("Error updating task:", error);
+    res.status(500).json({ message: `Error updating task: ${error.message}` });
   }
 };

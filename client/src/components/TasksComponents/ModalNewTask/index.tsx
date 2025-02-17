@@ -5,20 +5,25 @@ import useProjectStore from "@/state/project.state";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { usePathname } from "next/navigation";
-import ProjectTeamsList from "@/components/ProjectTeamsList";
+import ProjectTeamsList from "@/components/ProjectComponents/ProjectTeamsList";
+import AttachmentModal from "./attachmentModal";
+import { Button, Typography } from "@mui/material";
+import { AnimatePresence } from "motion/react";
 
-const ModalNewTask = () => {
+const ModalNewTask: React.FC = () => {
   const {
     tasks,
     createTask,
-    isLoading,
-    isError,
+    updateTask,
+    isEditMode,
     task,
     setTask,
     toggleModal,
     isModalNewTaskOpen,
   } = useTaskStore(
     useShallow((state) => ({
+      updateTask: state.updateTask,
+      isEditMode: state.isEditMode,
       tasks: state.tasks,
       toggleModal: state.toggleModal,
       isModalNewTaskOpen: state.isModalNewTaskOpen,
@@ -30,27 +35,30 @@ const ModalNewTask = () => {
     })),
   );
   const pathname = usePathname();
-  const currentProject = useProjectStore((state) => state.currentProject);
+  const currentProject = useProjectStore(
+    useShallow((state) => state.currentProject),
+  );
   const [isFormValid, setIsFormValid] = useState(false);
+  const [openToAttach, setOpenToAttach] = useState<Boolean>(false);
 
   useEffect(() => {
-    
     setTask({
       projectId: Number(currentProject?.id) || Number(pathname.split("/")[2]),
     });
-  }, [currentProject, pathname, setTask,tasks]);
+  }, [currentProject, pathname, setTask, tasks]);
   const handleSubmit = async () => {
-    createTask();
+    isEditMode ? updateTask() : createTask();
+    console.log(task);
   };
   useEffect(() => {
     const isValid = Boolean(
       task?.title &&
-      task?.description &&
-      task?.status &&
-      task?.priority &&
-      task?.startDate &&
-      task?.dueDate &&
-      (task?.tags?.length ?? 0) > 0
+        task?.description &&
+        task?.status &&
+        task?.priority &&
+        task?.startDate &&
+        task?.dueDate &&
+        (task?.tags?.length ?? 0) > 0,
     );
     setIsFormValid(isValid);
   }, [task]);
@@ -64,8 +72,13 @@ const ModalNewTask = () => {
   return (
     <Modal
       isOpen={isModalNewTaskOpen}
-      onClose={toggleModal}
+      onClose={() => toggleModal(false)}
       name="Create New Task"
+      children2={
+        <AnimatePresence mode="wait">
+          {openToAttach && <AttachmentModal />}
+        </AnimatePresence>
+      }
     >
       <form
         className="mt-4 space-y-6"
@@ -122,46 +135,61 @@ const ModalNewTask = () => {
           </select>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-          <label
-            htmlFor="Tags"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Tags
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {Object.values(TaskTags).map((tag) => (
-              <label key={tag} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  className="rounded border-gray-300 text-blue-primary focus:ring-blue-500 dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white"
-                  value={tag}
-                  checked={task?.tags?.includes(tag)}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    setTask({
-                      tags: isChecked
-                        ? [...(task?.tags || []), tag]
-                        : task?.tags?.filter((t) => t !== tag),
-                    });
-                  }}
-                />
-                <span className="text-sm">{tag}</span>
-              </label>
-            ))}
+          <div>
+            <label
+              htmlFor="Tags"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Tags
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {Object.values(TaskTags).map((tag) => (
+                <label key={tag} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-blue-primary focus:ring-blue-500 dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white"
+                    value={tag}
+                    checked={task?.tags?.includes(tag)}
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      setTask({
+                        tags: isChecked
+                          ? [...(task?.tags || []), tag]
+                          : task?.tags?.filter((t) => t !== tag),
+                      });
+                    }}
+                  />
+                  <span className="text-sm">{tag}</span>
+                </label>
+              ))}
+            </div>
           </div>
+          <Button onClick={() => setOpenToAttach(!openToAttach)}>
+            <Typography variant="body1" className="flex items-center space-x-2">
+              {openToAttach ? "Close Attachments" : "Add Attachments"}
+            </Typography>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
           <input
             type="date"
             className={inputStyles}
-            value={task?.startDate}
+            value={
+              task?.startDate
+                ? new Date(task.startDate).toISOString().split("T")[0]
+                : ""
+            }
             onChange={(e) => setTask({ startDate: e.target.value })}
           />
           <input
             type="date"
             className={inputStyles}
-            value={task?.dueDate}
+            value={
+              task?.dueDate
+                ? new Date(task.dueDate).toISOString().split("T")[0]
+                : ""
+            }
             onChange={(e) => setTask({ dueDate: e.target.value })}
           />
         </div>
@@ -175,7 +203,7 @@ const ModalNewTask = () => {
           }`}
           disabled={!isFormValid}
         >
-          {isLoading ? "Creating..." : "Create Task"}
+          {isEditMode ? "Update Task" : "Create Task"}
         </button>
       </form>
     </Modal>

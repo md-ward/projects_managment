@@ -18,7 +18,12 @@ type Props = {
 
 const Project = ({ params }: Props) => {
   const getProject = useProjectStore(useShallow((state) => state.getProject));
-  const getTasks = useTaskStore(useShallow((state) => state.getTasks));
+  const { getTasks, isModalNewTaskOpen } = useTaskStore(
+    useShallow((state) => ({
+      getTasks: state.getTasks,
+      isModalNewTaskOpen: state.isModalNewTaskOpen,
+    })),
+  );
   const { id } = params;
   useEffect(() => {
     getProject(Number(id));
@@ -28,7 +33,7 @@ const Project = ({ params }: Props) => {
 
   return (
     <div>
-      <ModalNewTask />
+      {isModalNewTaskOpen && <ModalNewTask />}{" "}
       <ProjectHeader activeTab={activeTab} setActiveTab={setActiveTab} />
       <DeleteTaskModal />
       {activeTab === "Board" && <Board />}

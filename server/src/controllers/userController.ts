@@ -337,11 +337,7 @@ export const updateUser = async (
 
     // Generate profilePictureUrl only if `req.body.image` exists
     if (req.body.image) {
-      const protocol = req.protocol; // Detects if it's http or https
-      const host = req.get("host"); // Gets the hostname with the port if present
-      data.profilePictureUrl = new URL(
-        `${protocol}://${host}/public/images/${req.body.image}`
-      ).href;
+      data.profilePictureUrl = req.body.image;
     }
 
     // Update the user record in the database

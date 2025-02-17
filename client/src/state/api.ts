@@ -50,9 +50,11 @@ export interface User {
 
 export interface Task {
   id: number;
+  teamName?: string;
+  teamId?: number;
   title: string;
   description?: string;
-  status?: Status |string;
+  status?: Status | string;
   priority?: Priority;
   tags?: TaskTags[];
   startDate?: string;
@@ -69,6 +71,7 @@ export interface Task {
 
 export interface Team {
   id?: number;
+  projectName?: string;
   teamName: string;
   description?: string;
   productOwnerUserId?: number;
@@ -83,6 +86,7 @@ export interface Team {
 }
 
 export interface Attachment {
+  file: File;
   id: number;
   fileURL: string;
   fileName?: string;
@@ -90,4 +94,5 @@ export interface Attachment {
   uploadedById: number;
   createdAt: Date;
   updatedAt: Date;
+  description?: string;
 }

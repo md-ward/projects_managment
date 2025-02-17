@@ -45,7 +45,11 @@ const imageUploadMiddleware = (
 
     // Log file info (useful for debugging)
     if (req.file) {
-      req.body.image = req.file.filename;
+      const protocol = req.protocol; // Detects if it's http or https
+      const host = req.get("host"); // Gets the hostname with the port if present
+      req.body.image = new URL(
+        `${protocol}://${host}/public/images/${req.file.filename}`
+      ).href;
     }
 
     next(); // Pass control to the next middleware or route handler

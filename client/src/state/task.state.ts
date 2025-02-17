@@ -2,39 +2,60 @@ import { create } from "zustand";
 import { Status, Task } from "./api";
 import axios from "axios";
 import useAlertStore from "./alert.state";
+import { use } from "react";
+import useAttachmentStore from "./attachments.state";
 interface TaskStore {
   currentUserTasks: Task[] | null;
-  getCurrentUserTasks: () => Promise<void>;
-  deleteTask: () => void;
   isDeleteTaskModalOpen: boolean;
   deleteTaskId: number | null;
-  toggleDeleteTaskModal: (taskId: number | null) => void;
-  clearTask(): void;
-  toggleModal(): void;
+  isEditMode: boolean;
   isModalNewTaskOpen: boolean;
   task: Task | null;
+  tasks: Task[];
+  isLoading: boolean;
+  isError: string | null;
+  updateTask: () => void;
+  getCurrentUserTasks: () => Promise<void>;
+  deleteTask: () => void;
+  toggleDeleteTaskModal: (taskId: number | null) => void;
+  clearTask(): void;
+  toggleModal: (isEditMode: boolean, task?: Task | null) => void;
   setTask: (task: Partial<Task>) => void;
   setTasks: (tasks: Task[]) => void;
   createTask: () => void;
-  tasks: Task[];
   getTasks: (projectId: number) => void;
-  isLoading: boolean;
-  isError: string | null;
   updateTaskStatus: (taskId: number, status: string) => void;
 }
 
 const useTaskStore = create<TaskStore>((set, get) => ({
   task: null,
-  setTask: (taskData) => {
-    set((state) => ({ task: { ...state.task, ...taskData } as Task }));
-  },
+  isLoading: false,
+  isError: null,
   isModalNewTaskOpen: false,
-  toggleModal: () => {
-    set((state) => ({ isModalNewTaskOpen: !state.isModalNewTaskOpen }));
+  isEditMode: false,
+  tasks: [],
+  deleteTaskId: null,
+  isDeleteTaskModalOpen: false,
+  currentUserTasks: null,
+
+  setTask: (taskData) => {
+    set((state: TaskStore) => ({
+      task: { ...state.task, ...taskData } as Task,
+    }));
+  },
+
+  toggleModal: (isEditMode, task) => {
+    if (isEditMode) set({ task, isEditMode });
+    if (!isEditMode) set({ task: null, isEditMode });
+
+    set((state: TaskStore) => ({
+      isModalNewTaskOpen: !state.isModalNewTaskOpen,
+    }));
+    useAttachmentStore.getState().clearAttachment();
   },
   clearTask: () => set({ task: null }),
 
-  setTasks: (tasks) => set({ tasks }),
+  setTasks: (tasks: Task[]) => set({ tasks }),
   createTask: async () => {
     try {
       set({ isLoading: true, isError: null });
@@ -57,12 +78,11 @@ const useTaskStore = create<TaskStore>((set, get) => ({
     } catch (error) {
       console.error("Error creating task:", error);
     } finally {
-      useTaskStore.getState().toggleModal();
+      useTaskStore.getState().toggleModal(false);
       useTaskStore.getState().clearTask();
       set({ isLoading: false });
     }
   },
-  tasks: [],
   getTasks: async (projectId) => {
     try {
       set({ isLoading: true });
@@ -79,8 +99,7 @@ const useTaskStore = create<TaskStore>((set, get) => ({
       set({ isError: (error as any).message, isLoading: false });
     }
   },
-  isLoading: false,
-  isError: null,
+
   updateTaskStatus(taskId, status) {
     try {
       axios.patch(
@@ -126,8 +145,7 @@ const useTaskStore = create<TaskStore>((set, get) => ({
       useTaskStore.getState().toggleDeleteTaskModal(null);
     }
   },
-  deleteTaskId: null,
-  isDeleteTaskModalOpen: false,
+
   toggleDeleteTaskModal: (taskId) => {
     set((state) => ({
       isDeleteTaskModalOpen: !state.isDeleteTaskModalOpen,
@@ -135,7 +153,6 @@ const useTaskStore = create<TaskStore>((set, get) => ({
     }));
   },
 
-currentUserTasks: null,
   getCurrentUserTasks: async () => {
     try {
       const response = await axios.get(
@@ -150,6 +167,42 @@ currentUserTasks: null,
     }
   },
 
-
+  updateTask() {
+    try {
+      const task = {
+        title: get().task?.title,
+        description: get().task?.description,
+        status: get().task?.status,
+        dueDate: get().task?.dueDate,
+        startDate: get().task?.startDate,
+        priority: get().task?.priority,
+        tags: get().task?.tags,
+        assignedUserId: get().task?.assignedUserId,
+      } as Task;
+      axios.patch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${useTaskStore.getState().task?.id ?? ""}`,
+        { task },
+        {
+          withCredentials: true,
+        },
+      );
+      set((state) => ({
+        tasks: state.tasks.map((task) =>
+          task.id === useTaskStore.getState().task?.id
+            ? { ...task, ...useTaskStore.getState().task }
+            : task,
+        ),
+        isModalNewTaskOpen: false,
+      }));
+      useAlertStore.getState().showAlert({
+        message: "Task updated successfully",
+        alertType: "success",
+      });
+    } catch (error) {
+      useAlertStore
+        .getState()
+        .showAlert({ message: "Error updating task", alertType: "error" });
+    }
+  },
 }));
 export default useTaskStore;
