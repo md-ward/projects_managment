@@ -1,10 +1,11 @@
 import Header from "@/components/Header";
 import useAttachmentStore from "@/state/attachments.state";
-import {  TextField, Button, Box, Card } from "@mui/material";
-import { Check, Plus, X } from "lucide-react";
+import { TextField, Button, Box, Card } from "@mui/material";
+import { Check,  Plus, X } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useRef } from "react";
+import AttachmentCard from "../AttachmentsCard";
 
 const AttachmentModal = () => {
   const {
@@ -12,7 +13,7 @@ const AttachmentModal = () => {
     attachments,
     setAttachment,
     confirmAttachment,
-    removeAttachment,
+    
   } = useAttachmentStore();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -20,7 +21,7 @@ const AttachmentModal = () => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const fileURL = URL.createObjectURL(file);
-      setAttachment({ file, fileURL });
+      setAttachment({ file, fileURL, fileName: file.name });
     }
   }
 
@@ -108,25 +109,10 @@ const AttachmentModal = () => {
             </Box>
           </>
         )}
-        <div className="flex h-[calc(100dvh-200px)] flex-wrap gap-2 overflow-y-scroll p-2">
-          {attachments &&
-            attachments.map((attachment, index) => (
-              <Card key={index} className="group relative h-fit p-1">
-                <button
-                  className="absolute right-2 top-2 hidden aspect-square rounded-full group-hover:block group-hover:bg-red-500 "
-                  onClick={() => removeAttachment(attachment)}
-                >
-                  <X className="p-1 text-white" />
-                </button>
-
-                <Image
-                  src={URL.createObjectURL(attachment.file)}
-                  alt={attachment.file.name}
-                  width={150}
-                  height={150}
-                />
-              </Card>
-            ))}
+        <div className="flex   flex-wrap gap-2 overflow-y-auto p-2">
+          {attachments.map((attachment, index) => (
+            <AttachmentCard key={index} attachment={attachment} />
+          ))}
         </div>
       </div>
     </motion.div>

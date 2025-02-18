@@ -7,11 +7,12 @@ import { useShallow } from "zustand/shallow";
 import { usePathname } from "next/navigation";
 import ProjectTeamsList from "@/components/ProjectComponents/ProjectTeamsList";
 import AttachmentModal from "./attachmentModal";
-import { Button, Typography } from "@mui/material";
+import { Button, LinearProgress, Typography } from "@mui/material";
 import { AnimatePresence } from "motion/react";
 
 const ModalNewTask: React.FC = () => {
   const {
+    uploadedAttachmentsPercentage,
     tasks,
     createTask,
     updateTask,
@@ -22,6 +23,7 @@ const ModalNewTask: React.FC = () => {
     isModalNewTaskOpen,
   } = useTaskStore(
     useShallow((state) => ({
+      uploadedAttachmentsPercentage: state.uploadedAttachmentsPercentage,
       updateTask: state.updateTask,
       isEditMode: state.isEditMode,
       tasks: state.tasks,
@@ -88,6 +90,7 @@ const ModalNewTask: React.FC = () => {
         }}
       >
         <input
+          name="title"
           type="text"
           className={inputStyles}
           placeholder="Title"
@@ -102,6 +105,7 @@ const ModalNewTask: React.FC = () => {
         />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
           <select
+            name="status"
             className={selectStyles}
             value={task?.status}
             onChange={(e) => {
@@ -118,6 +122,7 @@ const ModalNewTask: React.FC = () => {
             <option value={Status.Completed}>Completed</option>
           </select>
           <select
+            name="priority"
             className={selectStyles}
             value={task?.priority}
             onChange={(e) =>
@@ -135,9 +140,9 @@ const ModalNewTask: React.FC = () => {
           </select>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-          <div>
+          <div className="flex flex-col gap-2">
             <label
-              htmlFor="Tags"
+              htmlFor="tags"
               className="block text-sm font-medium text-gray-700"
             >
               Tags
@@ -146,6 +151,7 @@ const ModalNewTask: React.FC = () => {
               {Object.values(TaskTags).map((tag) => (
                 <label key={tag} className="flex items-center space-x-2">
                   <input
+                    name="tags"
                     type="checkbox"
                     className="rounded border-gray-300 text-blue-primary focus:ring-blue-500 dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white"
                     value={tag}
@@ -173,6 +179,7 @@ const ModalNewTask: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
           <input
+            name="startDate"
             type="date"
             className={inputStyles}
             value={
@@ -183,6 +190,7 @@ const ModalNewTask: React.FC = () => {
             onChange={(e) => setTask({ startDate: e.target.value })}
           />
           <input
+            name="dueDate"
             type="date"
             className={inputStyles}
             value={
@@ -195,6 +203,24 @@ const ModalNewTask: React.FC = () => {
         </div>
 
         <ProjectTeamsList />
+        {uploadedAttachmentsPercentage && (
+          <div className="flex items-center justify-center">
+            <div className="w-1/2 rounded border border-gray-300 bg-gray-50 p-4 dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {uploadedAttachmentsPercentage}%
+                </span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {task?.attachments?.length}
+                </span>
+              </div>
+              <LinearProgress
+                variant="determinate"
+                value={uploadedAttachmentsPercentage}
+              />
+            </div>
+          </div>
+        )}
 
         <button
           type="submit"

@@ -9,10 +9,11 @@ import {
   updateTaskStatus,
 } from "../controllers/taskController";
 import checkAuth from "../middleware/authMiddleware";
+import attachmentUploadMiddleware from "../middleware/attachmentsMiddleware";
 
 const router = Router();
 router.delete("/:taskId", checkAuth, deleteTask);
-router.post("/", checkAuth, createTask);
+router.post("/", checkAuth, attachmentUploadMiddleware,createTask);
 router.get("/", checkAuth, getTasks);
 router.get("/user", checkAuth, currentUserTasks);
 router.patch("/:taskId", checkAuth, updateTask);

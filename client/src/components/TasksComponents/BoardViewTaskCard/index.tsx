@@ -1,10 +1,10 @@
 import { useDrag } from "react-dnd";
-import { Task as TaskType } from "@/state/api";
+import { Attachment, Task as TaskType } from "@/state/api";
 import { Group, MessageSquareMore, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import DropdownMenu from "@/components/TasksComponents/TaskDropDownMenu";
-import { Card, CardHeader } from "@mui/material";
+import { Card, CardHeader, IconButton } from "@mui/material";
 import { motion } from "motion/react";
 import useDeletionDropzone from "@/state/deletionDropzone";
 import { listStatusColor } from "@/lib/utils";
@@ -12,10 +12,13 @@ import { useState, useRef, useEffect } from "react";
 import imgUrlChecker from "@/lib/imgUrlChecker";
 import useTaskStore from "@/state/task.state";
 import { useShallow } from "zustand/shallow";
+import ViewAttachmentsModal from "../ShowAttachmentModal";
 const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
   const setDropzoneOpen = useDeletionDropzone((state) => state.setDropzoneOpen);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [isViewAttachmentModalOpen, setIsViewAttachmentModalOpen] =
+    useState<boolean>(false);
 
   const textRef = useRef<HTMLParagraphElement>(null);
 
@@ -128,15 +131,6 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
           action={<DropdownMenu menuItems={menuItems} />}
         />
 
-        {task.attachments && task.attachments.length > 0 && (
-          <Image
-            src={imgUrlChecker(task.attachments[0]?.fileURL ?? "")}
-            alt={task.attachments[0]?.fileName ?? ""}
-            width={400}
-            height={200}
-            className="h-auto w-full rounded-t-md"
-          />
-        )}
         <div className="flex flex-col gap-2 p-4 md:p-6">
           <div>
             <p
@@ -203,15 +197,24 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
                 />
               )}
             </div>
-
-            <div className="flex items-center text-gray-500 gap-2 dark:text-neutral-500">
-              <div>
+            {/* View Attachments */}
+            <div className="flex items-center gap-2 text-gray-500 dark:text-neutral-500">
+              <IconButton
+                onClick={() => {
+                  setIsViewAttachmentModalOpen(true);
+                }}
+                className="hover:text-blue-400"
+              >
                 <Paperclip size={20} />
                 <span className="ml-1 text-sm dark:text-neutral-400">
-                  {/* {task.attachments && task.attachments.length} */}
-                5
+                  {task.attachments && task.attachments.length}
                 </span>
-              </div>
+              </IconButton>
+              <ViewAttachmentsModal
+                attachments={task.attachments as Attachment[]}
+                isOpen={isViewAttachmentModalOpen}
+                onClose={() => setIsViewAttachmentModalOpen(false)}
+              />
               <div>
                 <MessageSquareMore size={20} />
                 <span className="ml-1 text-sm dark:text-neutral-400">

@@ -1,8 +1,7 @@
 import { create } from "zustand";
-import { Status, Task } from "./api";
+import { Attachment, Task } from "./api";
 import axios from "axios";
 import useAlertStore from "./alert.state";
-import { use } from "react";
 import useAttachmentStore from "./attachments.state";
 interface TaskStore {
   currentUserTasks: Task[] | null;
@@ -25,9 +24,11 @@ interface TaskStore {
   createTask: () => void;
   getTasks: (projectId: number) => void;
   updateTaskStatus: (taskId: number, status: string) => void;
+  uploadedAttachmentsPercentage: number | null;
 }
 
 const useTaskStore = create<TaskStore>((set, get) => ({
+  uploadedAttachmentsPercentage:null,
   task: null,
   isLoading: false,
   isError: null,
@@ -58,18 +59,43 @@ const useTaskStore = create<TaskStore>((set, get) => ({
   setTasks: (tasks: Task[]) => set({ tasks }),
   createTask: async () => {
     try {
+      const currentTask = useTaskStore.getState().task;
+      if (currentTask) {
+        set({
+          task: {
+            ...currentTask,
+
+            attachments: useAttachmentStore.getState()
+              .attachments as Attachment[],
+          },
+        });
+      }
+
       set({ isLoading: true, isError: null });
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks`,
         { data: useTaskStore.getState().task },
         {
           withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Cache-Control": "max-age=3600",
+          },
+          onUploadProgress: (progressEvent) => {
+            progressEvent.total &&
+              set({
+                uploadedAttachmentsPercentage: Math.floor(
+                  (progressEvent.loaded / progressEvent.total) * 100,
+                ),
+              });
+          },
         },
       );
 
       set({
         tasks: [...useTaskStore.getState().tasks, response.data.task],
         isLoading: false,
+        uploadedAttachmentsPercentage: null,
       });
       useAlertStore.getState().showAlert({
         message: "Task created successfully",

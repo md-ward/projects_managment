@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient, Task } from "@prisma/client";
+import { Attachment, PrismaClient, Task } from "@prisma/client";
 import AuthenticatedRequest from "../types/authReqInterface";
+import { deleteAttachment } from "./attachmentsController";
 
 const prisma = new PrismaClient();
 
@@ -125,9 +126,10 @@ export const createTask = async (
     projectId,
     assignedUserId,
     teamId,
+    attachments,
   } = req.body.data;
 
-  console.log(req.body.data);
+  console.log(req.body);
 
   const authorUserId = req.user?.userId;
 
@@ -175,14 +177,25 @@ export const createTask = async (
         startDate: startDate ? new Date(startDate) : null,
         dueDate: dueDate ? new Date(dueDate) : null,
         points: points || null,
-        authorUserId,
-        projectId,
-        assignedUserId: assignedUserId || null,
+        authorUserId: Number(authorUserId),
+        projectId: Number(projectId),
+        assignedUserId: Number(assignedUserId) || null,
+        attachments: {
+          createMany: {
+            data:
+              attachments?.map((attachment: Attachment, index: number) => ({
+                description: attachment.description || null,
+                fileURL: req.body.filesURLs[index],
+                fileName: attachment.fileName || null, // Optional fileName (if passed)
+                uploadedById: Number(authorUserId), // The user who uploaded the file
+              })) || [],
+          },
+        },
         taskAssignments: {
           createMany: {
             data: [
               {
-                teamId: teamId || null,
+                teamId: Number(teamId),
               },
             ],
           },
@@ -255,18 +268,37 @@ export const getUserTasks = async (
       .json({ message: `Error retrieving user's tasks: ${error.message}` });
   }
 };
-
 export const deleteTask = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { taskId } = req.params;
   try {
-    await prisma.task.delete({
-      where: { id: Number(taskId) },
+    // Fetch attachments first before deleting the task
+    const attachments = await prisma.attachment.findMany({
+      where: { taskId: Number(taskId) },
     });
+
+    // Delete attachments and task concurrently
+    const results = await Promise.allSettled([ 
+      deleteAttachment(attachments), // Delete associated attachments
+      prisma.task.delete({ where: { id: Number(taskId) } }), // Delete task
+    ]);
+
+    // Check for errors in the deletion process
+    const errors = results.filter((result) => result.status === "rejected");
+
+    if (errors.length > 0) {
+      console.error("Some deletions failed:", errors);
+      res.status(500).json({
+        message: "Some deletions failed. Check server logs for details.",
+        errors,
+      });
+    }
+
     res.json({ message: "Task deleted successfully" });
   } catch (error: any) {
+    console.error("Error deleting task:", error);
     res.status(500).json({ message: `Error deleting task: ${error.message}` });
   }
 };

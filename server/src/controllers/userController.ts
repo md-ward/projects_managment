@@ -336,8 +336,8 @@ export const updateUser = async (
     if (req.body.email) data.email = req.body.email;
 
     // Generate profilePictureUrl only if `req.body.image` exists
-    if (req.body.image) {
-      data.profilePictureUrl = req.body.image;
+    if ( req.body.filesURLs) {
+      data.profilePictureUrl =  req.body.filesURLs[0];``
     }
 
     // Update the user record in the database

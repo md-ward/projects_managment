@@ -106,7 +106,7 @@ model Task {
   updatedAt       DateTime         @updatedAt
   attachments     Attachment[]
   comments        Comment[]
-  assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId],onUpdate: Cascade)
+  assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId], onUpdate: Cascade)
   author          User             @relation("TaskAuthor", fields: [authorUserId], references: [userId])
   project         Project          @relation(fields: [projectId], references: [id])
   taskAssignments TaskAssignment[]
@@ -121,7 +121,7 @@ model TaskAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   team      Team     @relation(fields: [teamId], references: [id])
-  task      Task     @relation(fields: [taskId], references: [id],onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@unique([taskId])
 }
@@ -135,8 +135,8 @@ model Attachment {
   description  String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  task         Task     @relation(fields: [taskId], references: [id])
-  uploadedBy   User     @relation(fields: [uploadedById], references: [userId])
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation(fields: [uploadedById], references: [userId], onDelete: Cascade)
 }
 
 model Comment {

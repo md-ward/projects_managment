@@ -9,7 +9,7 @@ import {
   verifyEmail,
 } from "../controllers/userController";
 import checkAuth from "../middleware/authMiddleware";
-import imageUploadMiddleware from "../middleware/imagesController";
+import imageUploadMiddleware from "../middleware/attachmentsMiddleware";
 
 const router = Router();
 router.post("/login", loginUser);
