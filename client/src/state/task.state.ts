@@ -23,12 +23,13 @@ interface TaskStore {
   setTasks: (tasks: Task[]) => void;
   createTask: () => void;
   getTasks: (projectId: number) => void;
+  getTasksViaPriority: (priority: string) => Promise<Task[]>;
   updateTaskStatus: (taskId: number, status: string) => void;
   uploadedAttachmentsPercentage: number | null;
 }
 
 const useTaskStore = create<TaskStore>((set, get) => ({
-  uploadedAttachmentsPercentage:null,
+  uploadedAttachmentsPercentage: null,
   task: null,
   isLoading: false,
   isError: null,
@@ -45,6 +46,23 @@ const useTaskStore = create<TaskStore>((set, get) => ({
     }));
   },
 
+  getTasksViaPriority: async (priority) => {
+    try {
+      set({ isLoading: true });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/priority/${priority}`,
+        {
+          withCredentials: true,
+        },
+      );
+
+      return response.data as Task[];
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      set({ isError: (error as any).message, isLoading: false });
+      return [];
+    }
+  },
   toggleModal: (isEditMode, task) => {
     if (isEditMode) set({ task, isEditMode });
     if (!isEditMode) set({ task: null, isEditMode });

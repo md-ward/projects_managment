@@ -1,5 +1,5 @@
 import { useDrag } from "react-dnd";
-import { Attachment, Task as TaskType } from "@/state/api";
+import { Attachment, Priority, Task as TaskType } from "@/state/api";
 import { Group, MessageSquareMore, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -13,6 +13,7 @@ import imgUrlChecker from "@/lib/imgUrlChecker";
 import useTaskStore from "@/state/task.state";
 import { useShallow } from "zustand/shallow";
 import ViewAttachmentsModal from "../ShowAttachmentModal";
+import PriorityTag from "@/lib/styledPriority";
 const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
   const setDropzoneOpen = useDeletionDropzone((state) => state.setDropzoneOpen);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -58,24 +59,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
-  const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
-    <div
-      title={"Priority: " + priority}
-      className={`flex aspect-square items-center rounded-full px-2 py-1 text-xs font-semibold ${
-        priority === "Urgent"
-          ? "bg-red-200 text-red-700"
-          : priority === "High"
-            ? "bg-yellow-200 text-yellow-700"
-            : priority === "Medium"
-              ? "bg-green-200 text-green-700"
-              : priority === "Low"
-                ? "bg-blue-200 text-blue-700"
-                : "bg-gray-200 text-gray-700"
-      }`}
-    >
-      {priority}
-    </div>
-  );
+  
   const { toggleDeleteTaskModal, toggleModal } = useTaskStore(
     useShallow((state) => ({
       toggleDeleteTaskModal: state.toggleDeleteTaskModal,
@@ -121,7 +105,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
         }`}
       >
         <CardHeader
-          avatar={<PriorityTag priority={task.priority} />}
+          avatar={<PriorityTag priority={task.priority as Priority} />}
           title={task.title}
           subheader={
             formattedStartDate && formattedDueDate
@@ -152,7 +136,7 @@ const BoardViewTaskCard = ({ task }: { task: TaskType }) => {
             )}
           </div>
           <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap w-full">
               {task.tags &&
                 task.tags.map((tag) => (
                   <div

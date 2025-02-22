@@ -16,7 +16,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+import {
+  dataGridClassNames,
+  dataGridSxStyles,
+  listStatusColor,
+  statusMapping,
+} from "@/lib/utils";
 import useModeStore from "@/state/mode.state";
 import { Priority, Project, Task } from "@/state/api";
 import useProjectStore from "@/state/project.state";
@@ -27,19 +32,42 @@ import {
   PieSkeletonComponent,
 } from "@/components/Skeletons";
 
-const taskColumns: GridColDef[] = [
-  { field: "title", headerName: "Title", width: 200 },
-  { field: "status", headerName: "Status", width: 150 },
-  { field: "priority", headerName: "Priority", width: 150 },
-  { field: "dueDate", headerName: "Due Date", width: 150 },
-];
-
 const COLORS = {
   toDo: "#0088FE",
   workInProgress: "#00C49F",
   Backlog: "#FFBB28",
   Completed: "#FF8042",
 };
+const taskColumns: GridColDef[] = [
+  { field: "title", headerName: "Title", width: 200 },
+  {
+    field: "status",
+    headerName: "Status",
+    width: 150,
+    renderCell(params) {
+      return (
+        <div
+          style={{
+            color: listStatusColor[params.value as string],
+            fontWeight: "bold",
+          }}
+        >
+          {statusMapping[params.value]}
+        </div>
+      );
+    },
+  },
+  { field: "priority", headerName: "Priority", width: 150 },
+  {
+    field: "dueDate",
+    headerName: "Due Date",
+    width: 150,
+    renderCell(params) {
+      const date = new Date(params.value);
+      return date.toLocaleDateString();
+    },
+  },
+];
 
 const HomePage = () => {
   const { currentUserTasks, getCurrentUserTasks } = useTaskStore(

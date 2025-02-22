@@ -4,16 +4,17 @@ import useAttachmentStore from "@/state/attachments.state";
 import { Card } from "@mui/material";
 import { File, X } from "lucide-react";
 import Image from "next/image";
+import { useShallow } from "zustand/shallow";
 
 const AttachmentCard = ({ attachment }: { attachment: Attachment }) => {
   const removeAttachment = useAttachmentStore(
-    (state) => state.removeAttachment,
+    useShallow((state) => state.removeAttachment),
   );
   console.log(`${attachment.file.name.split(".").pop()}`);
   return (
     <Card
       key={attachment.fileName}
-      className="group relative flex w-full flex-col  p-2"
+      className="group relative flex w-full flex-col p-2"
     >
       <button
         className="absolute right-2 top-2 hidden rounded-full bg-red-500 p-1 text-white group-hover:block"
@@ -27,7 +28,7 @@ const AttachmentCard = ({ attachment }: { attachment: Attachment }) => {
           alt={attachment.file.name}
           width={200}
           height={200}
-          className="object-scale-down place-self-center"
+          className="place-self-center object-scale-down"
         />
       ) : (
         <div
@@ -42,7 +43,7 @@ const AttachmentCard = ({ attachment }: { attachment: Attachment }) => {
         </div>
       )}
       {attachment.description && (
-        <div className="mt-1 w-full max-w-full  overflow-x-auto whitespace-nowrap rounded-md bg-gray-200 p-1  text-sm">
+        <div className="mt-1 w-full max-w-full overflow-x-auto whitespace-nowrap rounded-md bg-gray-200 p-1 text-sm">
           {attachment.description}
         </div>
       )}

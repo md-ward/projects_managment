@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Board from "../BoardView";
-import List from "../ListView";
 import Timeline from "../TimelineView";
 import Table from "../TableView";
 import useProjectStore from "@/state/project.state";
@@ -32,12 +31,11 @@ const Project = ({ params }: Props) => {
   const [activeTab, setActiveTab] = useState("Board");
 
   return (
-    <div>
+    <div className="flex flex-col ">
       {isModalNewTaskOpen && <ModalNewTask />}{" "}
       <ProjectHeader activeTab={activeTab} setActiveTab={setActiveTab} />
       <DeleteTaskModal />
       {activeTab === "Board" && <Board />}
-      {activeTab === "List" && <List />}
       {activeTab === "Timeline" && <Timeline />}
       {activeTab === "Table" && <Table />}
     </div>

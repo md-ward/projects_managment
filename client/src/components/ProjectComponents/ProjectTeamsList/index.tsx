@@ -22,10 +22,11 @@ const ProjectTeamsList: React.FC = () => {
 
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null); // Selected team ID
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<User[]>([]); // Array of users
-  const { setTask, task } = useTaskStore(
+  const { setTask, task, isEditMode } = useTaskStore(
     useShallow((state) => ({
       setTask: state.setTask,
       task: state.task,
+      isEditMode: state.isEditMode,
     })),
   );
   useEffect(() => {
@@ -33,6 +34,9 @@ const ProjectTeamsList: React.FC = () => {
   }, [getCurrentProjectTeams]);
 
   useEffect(() => {
+    if (isEditMode) {
+      setSelectedTeam(task?.teamId ?? null);
+    }
     if (selectedTeam !== null) {
       const team = currentProjectTeams?.find(
         (t: Team) => t.id === selectedTeam,
@@ -43,7 +47,7 @@ const ProjectTeamsList: React.FC = () => {
     } else {
       setSelectedTeamMembers([]);
     }
-  }, [selectedTeam, currentProjectTeams]);
+  }, [selectedTeam, currentProjectTeams, isEditMode, task]);
 
   return (
     <Box sx={{ padding: 4, maxWidth: 600, margin: "auto" }}>

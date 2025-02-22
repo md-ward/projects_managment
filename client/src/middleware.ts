@@ -23,5 +23,14 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/"],
+  matcher: [
+    "/",
+    "/priority/:priority*",
+    "/projects/:project*",
+    "/teams",
+    "/settings",
+    '/users',
+    '/timeline',
+    '/search'
+  ],
 };

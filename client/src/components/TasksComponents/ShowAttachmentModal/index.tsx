@@ -2,6 +2,7 @@ import { useState } from "react";
 import Modal from "@/components/Modal";
 import { Attachment } from "@/state/api";
 import Image from "next/image";
+import FileTypes from "@/lib/filesTypes";
 
 const ViewAttachmentsModal = ({
   attachments,
@@ -85,17 +86,17 @@ const ViewAttachmentsModal = ({
                 {imageAttachments.map((attachment) => (
                   <div
                     key={attachment.fileName}
-                    className="flex w-full flex-col  flex-shrink-0 snap-center items-center justify-center p-4"
+                    className="flex w-full flex-shrink-0 snap-center flex-col items-center justify-center p-4"
                   >
                     <Image
                       width={400}
                       height={400}
                       src={attachment.fileURL}
                       alt={attachment.fileName ?? "image"}
-                      className="h-64 w-64 rounded-lg border object-cover aspect-auto shadow-sm"
+                      className="aspect-auto h-64 w-64 rounded-lg border object-cover shadow-sm"
                     />
                     {attachment.description && (
-                      <p className="mt-2 text-center text-sm bg-gray-200 p-2 rounded-md w-full">
+                      <p className="mt-2 w-full rounded-md bg-gray-200 p-2 text-center text-sm">
                         {attachment.description}
                       </p>
                     )}
@@ -116,7 +117,25 @@ const ViewAttachmentsModal = ({
                   key={attachment.fileName}
                   className="flex items-center justify-between rounded-lg border p-2 shadow-sm"
                 >
-                  <span className="truncate">{attachment.fileName}</span>
+                  <span className="truncate">
+                    <p
+                      style={{
+                        fontWeight: "bold",
+                        color:
+                          FileTypes[
+                            `.${attachment.fileName?.split(".").pop()?.trim()}`
+                          ],
+                      }}
+                    >
+                      {attachment.fileName}
+                    </p>
+                    {attachment.description && (
+                      <p className="w-[70%]  overflow-x-auto whitespace-nowrap rounded-md bg-gray-200 p-2 text-sm">
+                        description: {attachment.description}
+                      </p>
+                      
+                    )}
+                  </span>
                   <button
                     onClick={() => downloadFile(attachment)}
                     className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"

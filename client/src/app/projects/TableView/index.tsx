@@ -1,5 +1,13 @@
 import Header from "@/components/Header";
-import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+import PriorityTag from "@/lib/styledPriority";
+import {
+  dataGridClassNames,
+  dataGridSxStyles,
+  listStatusColor,
+  statusColor,
+  statusMapping,
+} from "@/lib/utils";
+import { Priority } from "@/state/api";
 import useModeStore from "@/state/mode.state";
 import useTaskStore from "@/state/task.state";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -21,15 +29,26 @@ const columns: GridColDef[] = [
     headerName: "Status",
     width: 130,
     renderCell: (params) => (
-      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-        {params.value}
+      <span
+        style={{ color: listStatusColor[params.value] }}
+        className="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
+      >
+        {statusMapping[params.value]}
       </span>
     ),
   },
   {
     field: "priority",
+
     headerName: "Priority",
     width: 75,
+    resizable: false,
+    renderCell: (params) => (
+      <PriorityTag
+        priority={params.value as Priority}
+        ContainerShape="square"
+      />
+    ),
   },
   {
     field: "tags",
@@ -50,13 +69,16 @@ const columns: GridColDef[] = [
     field: "author",
     headerName: "Author",
     width: 150,
-    renderCell: (params) => params.value?.author || "Unknown",
+    renderCell: (params) => {
+
+      return params.value?.fullname || "Unassigned";
+    },
   },
   {
     field: "assignee",
     headerName: "Assignee",
     width: 150,
-    renderCell: (params) => params.value?.assignee || "Unassigned",
+    renderCell: (params) => params.value?.fullname || "Unassigned",
   },
 ];
 
@@ -88,7 +110,12 @@ const TableView = () => {
         rows={tasks || []}
         columns={columns}
         className={dataGridClassNames}
-        sx={dataGridSxStyles(isDarkMode === "dark" ? true : false)}
+        sx={
+          (dataGridSxStyles(isDarkMode === "dark" ? true : false),
+          {
+            gap: 10,
+          })
+        }
       />
     </div>
   );

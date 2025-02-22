@@ -1,8 +1,4 @@
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import axios from "axios";
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 // Interfaces
 export interface Project {

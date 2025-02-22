@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Attachment, PrismaClient, Task } from "@prisma/client";
+import { Attachment, PrismaClient, Task, TaskPriority } from "@prisma/client";
 import AuthenticatedRequest from "../types/authReqInterface";
 import { deleteAttachment } from "./attachmentsController";
 
@@ -40,6 +40,7 @@ export const getTasks = async (
             team: {
               select: {
                 teamName: true,
+                id: true,
               },
             },
           },
@@ -55,6 +56,7 @@ export const getTasks = async (
         },
         assignee: {
           select: {
+            fullname: true,
             userId: true,
             username: true,
             teamId: true,
@@ -70,6 +72,87 @@ export const getTasks = async (
     const transformedTasks = tasks.map((task) => ({
       ...task,
       teamName: task.taskAssignments?.[0]?.team?.teamName || null, // Get first team name if exists
+      teamId: task.taskAssignments?.[0]?.team?.id || null,
+      taskAssignments: undefined, // Remove the property
+    }));
+
+    res.json(transformedTasks);
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: `Error retrieving tasks: ${error.message}` });
+  }
+};
+export const getTasksViaPriority = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const priority = req.params.priority as string;
+  console.log(priority);
+  
+  try {
+    const tasks = await prisma.task.findMany({
+      where: {
+        AND: [
+          {
+            priority: priority as TaskPriority,
+          },
+
+          {
+            OR: [
+              {
+                assignee: {
+                  userId: req.user?.userId,
+                },
+              },
+              {
+                author: {
+                  userId: req.user?.userId,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      include: {
+        taskAssignments: {
+          select: {
+            team: {
+              select: {
+                teamName: true,
+                id: true,
+              },
+            },
+          },
+        },
+        author: {
+          select: {
+            fullname: true,
+            userId: true,
+            username: true,
+            teamId: true,
+            profilePictureUrl: true,
+          },
+        },
+        assignee: {
+          select: {
+            fullname: true,
+            userId: true,
+            username: true,
+            teamId: true,
+            profilePictureUrl: true,
+          },
+        },
+        comments: true,
+        attachments: true,
+      },
+    });
+
+    // Transform the data: extract teamName and remove taskAssignments
+    const transformedTasks = tasks.map((task) => ({
+      ...task,
+      teamName: task.taskAssignments?.[0]?.team?.teamName || null, // Get first team name if exists
+      teamId: task.taskAssignments?.[0]?.team?.id || null,
       taskAssignments: undefined, // Remove the property
     }));
 
@@ -159,6 +242,7 @@ export const createTask = async (
         },
         assignee: {
           select: {
+            fullname: true,
             userId: true,
             username: true,
             teamId: true,
@@ -280,7 +364,7 @@ export const deleteTask = async (
     });
 
     // Delete attachments and task concurrently
-    const results = await Promise.allSettled([ 
+    const results = await Promise.allSettled([
       deleteAttachment(attachments), // Delete associated attachments
       prisma.task.delete({ where: { id: Number(taskId) } }), // Delete task
     ]);

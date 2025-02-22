@@ -1,20 +1,23 @@
 import Header from "@/components/Header";
 import useAttachmentStore from "@/state/attachments.state";
 import { TextField, Button, Box, Card } from "@mui/material";
-import { Check,  Plus, X } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useRef } from "react";
 import AttachmentCard from "../AttachmentsCard";
+import { useShallow } from "zustand/shallow";
 
 const AttachmentModal = () => {
-  const {
-    attachment,
-    attachments,
-    setAttachment,
-    confirmAttachment,
-    
-  } = useAttachmentStore();
+  const { attachment, attachments, setAttachment, confirmAttachment } =
+    useAttachmentStore(
+      useShallow((state) => ({
+        attachment: state.attachment,
+        attachments: state.attachments,
+        setAttachment: state.setAttachment,
+        confirmAttachment: state.confirmAttachment,
+      })),
+    );
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleAddAttachment(event: React.ChangeEvent<HTMLInputElement>) {
@@ -109,7 +112,7 @@ const AttachmentModal = () => {
             </Box>
           </>
         )}
-        <div className="flex   flex-wrap gap-2 overflow-y-auto p-2">
+        <div className="flex flex-wrap gap-2 overflow-y-auto p-2">
           {attachments.map((attachment, index) => (
             <AttachmentCard key={index} attachment={attachment} />
           ))}

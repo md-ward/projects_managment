@@ -1,13 +1,22 @@
 "use client";
 
 import Header from "@/components/Header";
+import BoardViewTaskCard from "@/components/TasksComponents/BoardViewTaskCard";
 import ModalNewTask from "@/components/TasksComponents/ModalNewTask";
-import TaskCard from "@/components/TasksComponents/ListViewTaskCard";
-import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+import PriorityTag from "@/lib/styledPriority";
+import {
+  dataGridClassNames,
+  dataGridSxStyles,
+  listStatusColor,
+  statusMapping,
+} from "@/lib/utils";
 import { Priority, Task } from "@/state/api";
 import useModeStore from "@/state/mode.state";
+import useTaskStore from "@/state/task.state";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 type Props = {
   priority: Priority;
@@ -29,8 +38,11 @@ const columns: GridColDef[] = [
     headerName: "Status",
     width: 130,
     renderCell: (params) => (
-      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-        {params.value}
+      <span
+        style={{ color: listStatusColor[params.value] }}
+        className="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
+      >
+        {statusMapping[params.value]}
       </span>
     ),
   },
@@ -38,6 +50,13 @@ const columns: GridColDef[] = [
     field: "priority",
     headerName: "Priority",
     width: 75,
+    resizable: false,
+    renderCell: (params) => (
+      <PriorityTag
+        priority={params.value as Priority}
+        ContainerShape="square"
+      />
+    ),
   },
   {
     field: "tags",
@@ -58,49 +77,37 @@ const columns: GridColDef[] = [
     field: "author",
     headerName: "Author",
     width: 150,
-    renderCell: (params) => params.value.username || "Unknown",
+    renderCell: (params) => params.value.fullname || "Unknown",
   },
   {
     field: "assignee",
     headerName: "Assignee",
     width: 150,
-    renderCell: (params) => params.value.username || "Unassigned",
+    renderCell: (params) => params.value.fullname || "Unassigned",
   },
 ];
 
 const ReusablePriorityPage = ({ priority }: Props) => {
   const [view, setView] = useState("list");
-  const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
-
-  // const { data: currentUser } = useGetAuthUserQuery({});
-  // const userId = currentUser?.userDetails?.userId ?? null;
-  // const {
-  //   data: tasks,
-  //   isLoading,
-  //   isError: isTasksError,
-  // } = useGetTasksByUserQuery(userId || 0, {
-  //   skip: userId === null,
-  // });
 
   const isDarkMode = useModeStore((state) => state.isDarkMode);
-
-  // const filteredTasks = tasks?.filter(
-  //   (task: Task) => task.priority === priority,
-  // );
-
-  // if (isTasksError || !tasks) return <div>Error fetching tasks</div>;
+  const { getTasksViaPriority } = useTaskStore((state) => state);
+  const [tasks, setTasks] = useState<Task[] | undefined>([]);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const tasks = await getTasksViaPriority(priority);
+      setTasks(tasks);
+    };
+    fetchTasks();
+  }, [getTasksViaPriority, priority]);
 
   return (
     <div className="m-5 p-4">
-      <ModalNewTask
-      />
+      <ModalNewTask />
       <Header
         name="Priority Page"
         buttonComponent={
-          <button
-            className="mr-3 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-            onClick={() => setIsModalNewTaskOpen(true)}
-          >
+          <button className="mr-3 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">
             Add Task
           </button>
         }
@@ -123,29 +130,33 @@ const ReusablePriorityPage = ({ priority }: Props) => {
           Table
         </button>
       </div>
-      {/* {isLoading ? (
-        <div>Loading tasks...</div>
-      ) : view === "list" ? (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredTasks?.map((task: Task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </div>
+      {view === "list" ? (
+        <DndProvider backend={HTML5Backend}>
+          <div className="grid grid-cols-2 gap-4">
+            {tasks?.map((task: Task) => (
+              <BoardViewTaskCard key={task.id} task={task} />
+            ))}
+          </div>
+        </DndProvider>
       ) : (
-        view === "table" &&
-        filteredTasks && (
+        view === "table" && (
           <div className="z-0 w-full">
             <DataGrid
-              rows={filteredTasks}
+              rows={tasks || []}
               columns={columns}
               checkboxSelection
               getRowId={(row) => row.id}
               className={dataGridClassNames}
-              sx={dataGridSxStyles(isDarkMode)}
+              sx={
+                (dataGridSxStyles(isDarkMode === "dark" ? true : false),
+                {
+                  gap: 10,
+                })
+              }
             />
           </div>
         )
-      )} */}
+      )}
     </div>
   );
 };
