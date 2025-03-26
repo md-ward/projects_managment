@@ -299,7 +299,7 @@ export const requestDeleteUser = async (
 export const deleteUser = async (
   req: Request,
   res: Response
-): Promise<void> => {
+): Promise<void> => { 
   const { id, token } = req.body;
 
   try {

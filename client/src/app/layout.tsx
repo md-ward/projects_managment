@@ -9,6 +9,9 @@ import { useAuthStore } from "@/state/auth";
 import { useEffect } from "react";
 import useProjectStore from "@/state/project.state";
 import { useShallow } from "zustand/shallow";
+import { SocketContextProvider } from "@/context/socketProvider";
+import ChattingElement from "@/components/Chating";
+import { useChatStore } from "@/components/Chating/mockState/state";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,7 +35,7 @@ export default function RootLayout({
   }, [pathname, getCurrentUserDetails]);
   useEffect(() => {
     const body = document.getElementById("html");
-    
+
     if (pathname.startsWith("/projects")) {
       body?.style.setProperty("overflow", "hidden");
       // alert("hi");
@@ -40,20 +43,37 @@ export default function RootLayout({
       body?.style.removeProperty("overflow");
     }
   }, [pathname]);
-  
+
   useEffect(() => {
     if (pathname !== "/projects") {
       clearProjectDetails();
     }
   }, [pathname, clearProjectDetails]);
 
+  const { isChatModalOpen, closeChatModal } = useChatStore(
+    useShallow((state) => ({
+      isChatModalOpen: state.isChatModalOpen,
+      closeChatModal: state.closeChatModal,
+    })),
+  );
+  
   return (
     <html id="html" lang="en">
       <body className={inter.className + " " + mode}>
         {pathname === "/registration" ? (
           <>{children}</>
         ) : (
-          <DashboardWrapper>{children}</DashboardWrapper>
+          <SocketContextProvider
+            socketUrls={[`localhost:8002`]}
+          >
+            <DashboardWrapper>{children}</DashboardWrapper>
+            <ChattingElement
+              AnchorEl="BottomRight"
+              withAnimation={false}
+              isChatModalOpen={isChatModalOpen}
+              closeChatModal={closeChatModal}
+            />
+          </SocketContextProvider>
         )}
       </body>
     </html>

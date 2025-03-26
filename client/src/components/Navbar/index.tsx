@@ -1,6 +1,7 @@
 import {
   LucidePlusCircle,
   Menu,
+  MessageCircleIcon,
   Moon,
   Search,
   Settings,
@@ -18,6 +19,8 @@ import ModalNewProject from "@/components/ProjectComponents/ModalNewProject";
 import useProjectStore from "@/state/project.state";
 import imgUrlChecker from "@/lib/imgUrlChecker";
 import AnimatedSwitchingButton from "../AnimatedSwitchingButton";
+import { IconButton } from "@mui/material";
+import { useChatStore } from "../Chating/mockState/state";
 
 const Navbar = () => {
   const { isDarkMode, setIsDarkMode } = useModeStore((state) => state);
@@ -40,9 +43,12 @@ const Navbar = () => {
       console.error("Error signing out: ", error);
     }
   };
+  const { openChatModal } = useChatStore(
+    useShallow((state) => ({ openChatModal: state.openChatModal })),
+  );
 
   return (
-    <div className="sticky  top-0 z-30 flex items-center justify-between bg-white px-4 py-3 dark:bg-dark-secondary">
+    <div className="sticky top-0 z-30 flex items-center justify-between bg-white px-4 py-3 dark:bg-dark-secondary">
       {/* Search Bar */}
       <div className="flex items-center gap-8">
         {!isSidebarCollapsed ? null : (
@@ -71,15 +77,22 @@ const Navbar = () => {
 
       {/* Icons */}
       <div className="flex items-center">
+        <IconButton onClick={() => openChatModal()}>
+          <MessageCircleIcon></MessageCircleIcon>
+        </IconButton>
+
+        {/* animated button to toggle mode dark | light   */}
         <AnimatedSwitchingButton
           isEditable={Boolean(isDarkMode === "dark")}
           handleEditToggle={setIsDarkMode}
-          FirstIcon={<Sun className="h-6 w-6 cursor-pointer text-black  dark:text-white" />}
+          FirstIcon={
+            <Sun className="h-6 w-6 cursor-pointer text-black dark:text-white" />
+          }
           SecondIcon={
             <Moon className="h-6 w-6 cursor-pointer text-black dark:text-white" />
           }
         />
- 
+
         <Link
           href="/settings"
           className={
